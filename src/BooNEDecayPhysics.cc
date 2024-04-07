@@ -66,6 +66,7 @@ void BooNEDecayPhysics::ConstructProcess()
 
   // Add Decay Process
   G4Decay* decayProcess = new G4Decay();
+  auto aParticleIterator = GetParticleIterator();
   aParticleIterator->reset();
   G4ParticleDefinition* particle=0;
 

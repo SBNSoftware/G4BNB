@@ -24,10 +24,13 @@ NuBeamSkinDepthField::NuBeamSkinDepthField()
 { 
   fMessenger = new NuBeamSkinDepthFieldMessenger(this);
   G4UImanager* UI = G4UImanager::GetUIpointer();
+
+  G4cout << "Skin Depth Horn Current before UI Command: "<<fSkinDepthHornCurrent/CLHEP::ampere<<G4endl;
   
   UI->ApplyCommand("/boone/field/skin/SkinDepthModel");
   UI->ApplyCommand("/boone/field/skin/SkinDepth");
-  UI->ApplyCommand("/boone/field//skin/SkinDepthHornCurrent");
+  //UI->ApplyCommand("/boone/field/skin/SkinDepthHornCurrent");
+  G4cout << "Skin Depth Horn Current after UI Command: "<<fSkinDepthHornCurrent/CLHEP::ampere<<G4endl;
 
   fEquation = new G4Mag_UsualEqRhs(this); 
   fStepperType = 4 ;      // ClassicalRK4 is default stepper 

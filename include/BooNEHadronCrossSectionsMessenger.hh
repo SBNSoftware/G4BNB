@@ -71,10 +71,10 @@ private:
   G4double totProAlXsecPar[5], ineProAlXsecPar[5], qelProAlXsecPar[5];
   G4double totNeuBeXsecPar[5], ineNeuBeXsecPar[5], qelNeuBeXsecPar[5];
   G4double totNeuAlXsecPar[5], ineNeuAlXsecPar[5], qelNeuAlXsecPar[5];
-  G4double totPipBeXsecPar[7], inePipBeXsecPar[10], qelPipBeXsecPar[10];
-  G4double totPipAlXsecPar[7], inePipAlXsecPar[10], qelPipAlXsecPar[10];
-  G4double totPimBeXsecPar[7], inePimBeXsecPar[10], qelPimBeXsecPar[10];
-  G4double totPimAlXsecPar[7], inePimAlXsecPar[10], qelPimAlXsecPar[10];
+  G4double totPipBeXsecPar[8], inePipBeXsecPar[10], qelPipBeXsecPar[10];
+  G4double totPipAlXsecPar[8], inePipAlXsecPar[10], qelPipAlXsecPar[10];
+  G4double totPimBeXsecPar[8], inePimBeXsecPar[10], qelPimBeXsecPar[10];
+  G4double totPimAlXsecPar[8], inePimAlXsecPar[10], qelPimAlXsecPar[10];
 
 };
 

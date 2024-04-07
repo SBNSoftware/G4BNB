@@ -41,7 +41,6 @@ int main(int argc,char** argv)
   
   NuBeamOutput* myRecords = new NuBeamOutput();
   NuBeamRunManager *runManager = new NuBeamRunManager(myRecords); 
-       
   // set mandatory initialization classes
   runManager->SetUserInitialization(new NuBeamGeometryConstruction());
   runManager->SetUserInitialization(new NuBeamPhysicsList());
@@ -51,14 +50,14 @@ int main(int argc,char** argv)
   runManager->SetUserAction(new NuBeamStackingAction());
   runManager->SetUserAction(new NuBeamTrackingAction());
   runManager->SetUserAction(new NuBeamSteppingAction());
-
+  
 #ifdef G4VIS_USE
   // visualization manager
   G4VisManager* visManager = new G4VisExecutive;
   // G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
-  // G4VisManager* visManager = new G4VisExecutive("Quiet");
+  G4VisManager* visManager = new G4VisExecutive("Quiet");
   visManager->Initialize();
- #endif
+#endif
   
   G4bool batch_mode = macroFile != "";
   

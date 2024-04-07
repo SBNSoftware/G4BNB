@@ -33,6 +33,7 @@ void BooNEHadronElasticPhysics::ConstructParticle()
 void BooNEHadronElasticPhysics::ConstructProcess()
 {  
   G4ProcessManager* pManager = 0;
+  auto aParticleIterator = GetParticleIterator();
   aParticleIterator->reset();
   while( (*aParticleIterator)() ) {
     G4ParticleDefinition* particle = aParticleIterator->value();

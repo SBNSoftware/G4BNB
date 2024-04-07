@@ -48,7 +48,7 @@ args = parser.parse_args()
 flist=[ args.bin+"/NuBeam", args.bin+"beamHist", args.geometry, args.input ]
 for ff in  flist:
     if (not os.path.isfile(ff)):
-        print "%s does not exist."%ff
+        print("%s does not exist."%ff)
         sys.exit(1)
 
 #prepare the input based on provided file
@@ -105,7 +105,7 @@ upsp=subprocess.Popen(['objcopy', '--dump-section','ups_setup=/dev/stdout',args.
                       stderr=subprocess.PIPE)
 upsout,upserr=upsp.communicate()
 g4setup, gccsetup, dk2nusetup, ifdhcsetup, boostsetup=None,None,None,None,None
-for line in upsout.split("\n"):
+for line in upsout.decode().split("\n"):
     if "geant4" in line.split(" ")[0]:
         g4setup=line
     elif "gcc" in line.split(" ")[0]:
@@ -118,7 +118,7 @@ for line in upsout.split("\n"):
         ifdhcsetup=line
 
 if (g4setup==None or gccsetup==None or dk2nusetup==None or ifdhcsetup==None or boostsetup==None):
-    print "ups setup was not embedded in executable."
+    print("ups setup was not embedded in executable.")
     sys.exit(1)
 
 ofstr='''
@@ -150,7 +150,7 @@ sed -i "s/OUTPUTFILE/NuBeam_%(jobname)s_${JOBID}.dk2nu.root/g" %(inputfile)s
 
 ./NuBeam %(inputfile)s
 rm NuBeam
-./beamHist --input ./\*dk2nu.root --detector-radius 200 --detector-position 0 0 11000 --thread 1 --output hist_sbnd_NuBeam_%(jobname)s_${JOBID}.root
+./beamHist --input ./\*dk2nu.root --detector-radius 200 --detector-position 73.78 0 11000 --thread 1 --output hist_sbnd_NuBeam_%(jobname)s_${JOBID}.root
 ./beamHist --input ./\*dk2nu.root --detector-radius 200 --detector-position 0 0 47000 --thread 1 --output hist_uboone_NuBeam_%(jobname)s_${JOBID}.root
 ./beamHist --input ./\*dk2nu.root --detector-radius 610 --detector-position 0 189.614 54134 --thread 1 --output hist_miniboone_NuBeam_%(jobname)s_${JOBID}.root
 ./beamHist --input ./\*dk2nu.root --detector-radius 200 --detector-position 0 0 60000 --thread 1 --output hist_icarus_NuBeam_%(jobname)s_${JOBID}.root
@@ -184,12 +184,12 @@ jobsub_options=" --group=%s --resource-provides=usage_model=DEDICATED,OPPORTUNIS
 cmd="jobsub_submit" + jobsub_options + "-N %i --tar_file_name=dropbox://%s file://%s"%(args.n,os.path.abspath(tarfilename),os.path.abspath(runjobfname))
 
 if (not args.debug):
-    print "Running submit cmd:"
-    print cmd
+    print("Running submit cmd:")
+    print(cmd)
     os.system(cmd)
 else:
-    print "Would have ran:"
-    print cmd
+    print("Would have ran:")
+    print(cmd)
 
 #Delete temp files unless debugging
 if (not args.debug):
