@@ -2468,7 +2468,14 @@ G4double BooNEpBeInteraction::GetpBeInelasticCrossSection( G4double totalMomentu
 	  (*procVec)[iproc]->GetProcessSubType()==G4HadronicProcessType::fHadronInelastic) {
 	G4HadronicProcess* hadProc=dynamic_cast<G4HadronicProcess*> ((*procVec)[iproc]);
 
-	xsec = hadProc->GetElementCrossSection(dummyProton, G4Element::GetElement("Be"));
+	G4Element* myElement=G4Element::GetElement("Be");
+	G4Material* myMat=G4Material::GetMaterial("Be");
+	if (!myMat) {
+	  myMat=new G4Material("Be", 1.85*CLHEP::g/CLHEP::cm3, 1);
+	  myMat->AddElement(myElement, 1.0);
+	}
+
+	xsec = hadProc->GetElementCrossSection(dummyProton, myElement,myMat);
 
       }
     }

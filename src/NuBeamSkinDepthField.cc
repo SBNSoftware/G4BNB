@@ -29,7 +29,7 @@ NuBeamSkinDepthField::NuBeamSkinDepthField()
   
   UI->ApplyCommand("/boone/field/skin/SkinDepthModel");
   UI->ApplyCommand("/boone/field/skin/SkinDepth");
-  //UI->ApplyCommand("/boone/field/skin/SkinDepthHornCurrent");
+  UI->ApplyCommand("/boone/field/skin/SkinDepthHornCurrent");
   G4cout << "Skin Depth Horn Current after UI Command: "<<fSkinDepthHornCurrent/CLHEP::ampere<<G4endl;
 
   fEquation = new G4Mag_UsualEqRhs(this); 
