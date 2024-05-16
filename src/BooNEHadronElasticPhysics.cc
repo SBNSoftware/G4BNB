@@ -71,6 +71,7 @@ void BooNEHadronElasticPhysics::ConstructProcess()
     }
   }
   fBooNEHadronElasticProcess.RegisterMe(&fBooNEHadronElasticModel);
+  fBooNEHadronElasticProcess.AddDataSet(new G4HadronElasticDataSet());
   fBooNEHadronElasticProcess.AddDataSet(&fBooNEHadronElasticData);
 
 }
