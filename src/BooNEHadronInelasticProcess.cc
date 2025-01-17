@@ -165,9 +165,9 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
   G4Element* anElement = 0;
   try
   {
-    anElement = GetCrossSectionDataStore()->SampleZandA(aParticle,
-							 aMaterial,
-							 *GetTargetNucleusPointer());
+    anElement = (G4Element*)GetCrossSectionDataStore()->SampleZandA(aParticle,
+								    aMaterial,
+								    *GetTargetNucleusPointer());
   }
   catch(G4HadronicException & aR)
   {
