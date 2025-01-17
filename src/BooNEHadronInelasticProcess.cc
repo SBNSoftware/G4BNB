@@ -302,6 +302,13 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
     tInfo->SetCreatorModelName(GetHadronicInteraction()->GetModelName()); 
   }
 
+  // Revert the old track info to get it stored properly in the last step of ancestry tree
+  // Same as in BooNEHadronElasticProcess.cc
+  theTotalResult->ProposeMomentumDirection(aTrack.GetMomentumDirection());
+  theTotalResult->ProposeEnergy(aTrack.GetKineticEnergy());
+  theTotalResult->ProposePolarization(aTrack.GetPolarization());
+  theTotalResult->ProposeVelocity(aTrack.GetVelocity());
+
   return theTotalResult;
 }
 
