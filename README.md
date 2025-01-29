@@ -118,36 +118,34 @@ The production ntuple can be saved in the output files by uncommenting the line 
 ```
 
 ## Analyzing beam MC
-
 The output of the beam MC are [dk2nu beam ntuples](https://cdcvs.fnal.gov/redmine/projects/dk2nu/wiki/Wiki).
 Code to produce standard set of histograms is in `scripts/beamHist.cc` and gets compiled with beam MC.
 ```
 Options:
-  -h [ --help ]                     Print help message
-  -i [ --input ] arg                Path pattern for input files. Put it in 
-                                    quotes or escape *.
-  -o [ --output ] arg (=hist.root)  Output file name.
-  -p [ --pot ] arg                  POT used for normalization (overides 
-                                    counting using info in meta tree and speeds
-                                    up process). 
-                                    Total POT should be given (number of files 
-                                    X POT per file).
-  -n [ --nredecays ] arg (=1)       Number of redecays.
-  -r [ --detector-radius ] arg (=0) Detector radius (in cm).
-  -x [ --detector-position ] arg    Detector position (in cm).
-  -t [ --thread ] arg (=1)          Number of threads to run. (max set to 8)
+  --help                     Print help message
+  --input arg                Path pattern for input files. Put it in quotes or 
+                             escape *.
+  --output arg (=hist.root)  Output file name.
+  --pot arg                  POT used for normalization (overides counting 
+                             using info in meta tree and speeds up process). 
+                             Total POT should be given (number of files X POT 
+                             per file).
+  --nredecays arg (=1)       Number of redecays.
+  --detector-radius arg (=0) Detector radius (in cm).
+  --detector-position arg    Detector position (in cm).
+  --thread arg (=1)          Number of threads to run. (max set to 8)
 ```
 
 Example to produce histograms from previously generated jobs:
 ```
-bin/v4_10_4_p02d/beamHist -i /pnfs/uboone/scratch/users/${USER}/beammc/production_BooNE_50m_I174000A/\*/\*root -r 610 -x 0 189.614 54134 -t4 -o hist_miniboone.root
+./bin/v4_10_4_p02d/beamHist --input /pnfs/uboone/scratch/users/${USER}/beammc/production_BooNE_50m_I174000A/\*/\*dk2nu.root --detector-radius 200 --detector-position 73.78 0 11000 --thread 4 --output hist_sbnd.root
 ```
 
 This might take a while if analyzing many jobs. submitBeam.py actually runs the beamHist command on the grid and produces histogram files for sbnd, uboone, miniboone, icarus locations:
 
  |                    |        x/cm   |         y/cm   |            z/cm | r/cm |
  | ---|---|---|---|---|
- |  sbnd             |         0          |         0            |    11000   | 200   |
+ |  sbnd             |         73.78          |         0            |    11000   | 200   |
  | uboone          |         0          |         0            |    47000 |  200   |
  | miniboone     |         0          | 189.614          |    54134  |  610   |
  | icarus             |        0           |        0             |   60000  |  200   |
