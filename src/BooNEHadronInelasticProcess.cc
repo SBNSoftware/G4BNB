@@ -17,6 +17,9 @@
 #include "G4PreCompoundModel.hh"
 #include "G4BGGNucleonInelasticXS.hh"
 
+#include "G4Version.hh"
+#define G4VERSION_MAJOR_MINOR (G4VERSION_NUMBER / 10) // last digit is patch.
+
 BooNEHadronInelasticProcess::
 BooNEHadronInelasticProcess(const G4ParticleDefinition& aParticleType)
   :  G4HadronicProcess("BooNEHadronInelastic")
@@ -165,9 +168,15 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
   G4Element* anElement = 0;
   try
   {
+#if G4VERSION_MAJOR_MINOR <= 104 // code for v10.4
     anElement = GetCrossSectionDataStore()->SampleZandA(aParticle,
-							 aMaterial,
-							 *GetTargetNucleusPointer());
+							aMaterial,
+							*GetTargetNucleusPointer());
+#elif G4VERSION_MAJOR_MINOR >= 106 // code for v10.6++
+    anElement = (G4Element*) GetCrossSectionDataStore()->SampleZandA(aParticle,
+								     aMaterial,
+								     *GetTargetNucleusPointer());
+#endif // check G4VERSION
   }
   catch(G4HadronicException & aR)
   {

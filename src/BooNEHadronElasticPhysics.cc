@@ -8,6 +8,8 @@
 #include "G4MesonConstructor.hh"
 #include "G4BaryonConstructor.hh"
 
+#include "G4Version.hh"
+#define G4VERSION_MAJOR_MINOR (G4VERSION_NUMBER / 10) // last digit is patch.
 
 BooNEHadronElasticPhysics::BooNEHadronElasticPhysics(G4int)
   :  G4VPhysicsConstructor("BooNEHadronElasticPhysics")
@@ -71,6 +73,9 @@ void BooNEHadronElasticPhysics::ConstructProcess()
     }
   }
   fBooNEHadronElasticProcess.RegisterMe(&fBooNEHadronElasticModel);
+#if G4VERSION_MAJOR_MINOR >= 106 // code for v10.6++
+  fBooNEHadronElasticProcess.AddDataSet(new G4HadronElasticDataSet());
+#endif // check G4VERSION
   fBooNEHadronElasticProcess.AddDataSet(&fBooNEHadronElasticData);
 
 }
