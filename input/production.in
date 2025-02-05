@@ -219,7 +219,7 @@
 # 
 /boone/output/filename nubeam.dk2nu.root
 
-#/boone/output/saveProductionNtuple true
+#/boone/output/saveProductionNtuple true # saves everything coming out of primary interaction
 # define aux ntuples
 # particles exiting exitVolName and entering enterVolName will be recorded in treeName tree
 # /boone/output/boundaryNtuple treeName exitVolName enterVolName
@@ -233,6 +233,12 @@
 /boone/output/pionMomentumThr 1. MeV
 /boone/output/muonMomentumThr 1. MeV
 /boone/output/kaonMomentumThr -1. MeV
+
+#
+# set threshold for killing tracks
+#
+/boone/stacking/lowKEThreshold 50. MeV
+
 #
 # set verbosities
 #
@@ -241,14 +247,14 @@
 /process/verbose 0
 /tracking/verbose 0
 /event/verbose 0
-/run/verbose 1
+/run/verbose 0
 /control/saveHistory 
-/event/printModulo 10
+/event/printModulo 100
 
 # Start simulation
 # ----------------
 # Specify number of protons on target
-/run/beamOn 1000
+/run/beamOn 1
 
 # Termination
 # -----------
