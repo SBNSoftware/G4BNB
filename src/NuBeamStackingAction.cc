@@ -10,16 +10,22 @@
 #include "G4VPhysicalVolume.hh"
 #include "G4TrajectoryContainer.hh"
 #include "G4ios.hh"
+#include "G4UImanager.hh"
 #include "NuBeamTrackInformation.hh"
 #include "NuBeamTrajectory.hh"
 #include "NuBeamRunManager.hh"
 
-NuBeamStackingAction::NuBeamStackingAction()
+NuBeamStackingAction::NuBeamStackingAction(): fMessenger(0)
 { 
+  fMessenger = new NuBeamStackingActionMessenger(this);
+  G4UImanager* UI = G4UImanager::GetUIpointer();
+  UI->ApplyCommand("/boone/stacking/lowKEThreshold");
 }
 
 NuBeamStackingAction::~NuBeamStackingAction()
 {
+  delete fMessenger;
+  fMessenger = 0;
 }
 
 G4ClassificationOfNewTrack NuBeamStackingAction::ClassifyNewTrack(const G4Track * aTrack)
@@ -71,8 +77,8 @@ void NuBeamStackingAction::KillThresholdParticles(G4ClassificationOfNewTrack& cl
       (particleType!=G4AntiNeutrinoTau::AntiNeutrinoTau())) {
     G4double energy = aTrack->GetKineticEnergy();
     
-    if ((energy < 0.05*CLHEP::GeV ) && (classification != fKill))
-      {classification = fKill;} 
+    if ((energy < fLowKEThreshold * CLHEP::MeV/CLHEP::GeV ) && (classification != fKill))
+      {classification = fKill;}
   }  
 }
 
