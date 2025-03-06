@@ -142,7 +142,7 @@ void NuBeamOutput::fillDkMeta()
    fDkMeta->location.push_back(alocationSc);
    bsim::Location alocationT600(0., 0.  , 60000., std::string("T600"));
    fDkMeta->location.push_back(alocationT600);
-   bsim::Location alocationSBND(0., 0.  , 11000., std::string("SBND"));
+   bsim::Location alocationSBND(73.78, 0.  , 11000., std::string("SBND"));
    fDkMeta->location.push_back(alocationSBND);
    fOutTreeDk2NuMeta->Fill();
 }
