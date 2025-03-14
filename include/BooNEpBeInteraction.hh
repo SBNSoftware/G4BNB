@@ -38,6 +38,8 @@
 class BooNEHadronPhysics;
 class BooNEpBeInteractionMessenger;
 
+class XSecArrayHolder;
+
 class BooNEpBeInteraction : public G4HadronicInteraction
 {
 public:

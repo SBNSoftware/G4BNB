@@ -168,6 +168,9 @@ public:
   // method to retrieve the parent trajectory for any trajectory
   NuBeamTrajectory* GetParentTrajectory();
 
+  // method to retrieve daughter trajectories
+  std::vector<NuBeamTrajectory*> GetDaughterTrajectories();
+
   virtual void ShowTrajectory(std::ostream& os=G4cout) const;
   //  virtual void DrawTrajectory() const;
   virtual void AppendStep(const G4Step* aStep);
@@ -212,7 +215,6 @@ private:
   G4ThreeVector fFinalPolarization;
   G4double      fFinalTime;
   G4int         fFinalStepNumber;
-
 
 public:
 

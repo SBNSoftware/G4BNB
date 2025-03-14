@@ -58,6 +58,7 @@ void NuBeamTrackingAction::PreUserTrackingAction(const G4Track* aTrack)
       particleType==G4Geantino::GeantinoDefinition());
 
   if (interestingTrack) {
+
     if (aTrackInfo == 0) {
       NuBeamTrackInformation* info = 
 	new NuBeamTrackInformation(aTrack);

@@ -5,6 +5,7 @@
 #include "G4VPhysicsConstructor.hh"
 
 #include "G4Decay.hh"
+#include "BooNECustomDecay.hh"
 
 class BooNEDecayPhysics : public G4VPhysicsConstructor
 {

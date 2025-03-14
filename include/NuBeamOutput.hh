@@ -9,6 +9,7 @@
 #include "G4HadFinalState.hh"
 #include "G4LogicalVolume.hh"
 #include "G4LogicalVolumeStore.hh"
+#include "G4DecayProducts.hh"
 
 #include "NuBeamTrajectory.hh"
 #include "NuBeamLocalField.hh"
@@ -75,11 +76,13 @@ public:
   void RecordNeutrino(const G4Track*);
 
   void RecordpBeInteraction(G4HadFinalState* aParticleChange);
+  void RecordNuParentDecay(const G4Track* aTrack);
     
   void SetOutputFileName (G4String val) { fOutputFileName = val;};
   G4String GetOutputFileName() { return fOutputFileName;}
 
   void SaveProductionNtuple(bool val) {fSaveProductionNtuple = val;};
+  void SaveRestFrameDecay(bool val) {fSaveRestFrameDecay = val;}
 
   void SetNuEnergyThr(G4double val){ fNuEnergyThr = val;};
   G4double GetNuEnergyThr() const { return fNuEnergyThr;};
@@ -131,6 +134,9 @@ private:
 
   bool   fSaveProductionNtuple;
   TTree* fProductionTree;
+
+  bool   fSaveRestFrameDecay;
+  TTree* fDARTree;
 
   G4double fNuEnergyThr;
   G4double fPionMomentumThr;

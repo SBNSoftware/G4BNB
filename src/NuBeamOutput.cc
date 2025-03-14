@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <iostream>
 
+#include "DARTree.hh"
 #include "NuBeamOutput.hh"
 #include "NuBeamOutputMessenger.hh"
 #include "NuBeamTrackInformation.hh"
@@ -81,7 +82,7 @@ void NuBeamOutput::RecordBeginOfRun(const G4Run*)
   fOutTreeDk2Nu->Branch("dk2nu", "bsim::Dk2Nu", &fDk2Nu, 32000, 99);
   fOutTreeDk2NuMeta  = new TTree("dkmetaTree", "Neutrino ntuple, dk2Nu format, metadata");
   fOutTreeDk2NuMeta->Branch("dkmeta", "bsim::DkMeta", &fDkMeta, 32000,99);
-  this->fillDkMeta();   
+  this->fillDkMeta();
 
   if (fSaveProductionNtuple) {
     G4cout<<"Creating aux tree: production"<<G4endl;
@@ -142,7 +143,7 @@ void NuBeamOutput::fillDkMeta()
    fDkMeta->location.push_back(alocationSc);
    bsim::Location alocationT600(0., 0.  , 60000., std::string("T600"));
    fDkMeta->location.push_back(alocationT600);
-   bsim::Location alocationSBND(73.78, 0.  , 11000., std::string("SBND"));
+   bsim::Location alocationSBND(0., 0.  , 11000., std::string("SBND"));
    fDkMeta->location.push_back(alocationSBND);
    fOutTreeDk2NuMeta->Fill();
 }
@@ -151,6 +152,8 @@ void NuBeamOutput::RecordEndOfRun(const G4Run* )
 {
   fOutFileDk2Nu->cd();
   if (fSaveProductionNtuple) fProductionTree->Write(); 
+  if( fSaveRestFrameDecay || true ) { 
+    fDARTree = DARTree::RetrieveTree(); fDARTree->Write(); }
   for (unsigned int i=0; i<fBoundaryNtp.size();i++) 
       fBoundaryNtp[i].fTree->Write();
 
@@ -183,6 +186,12 @@ void NuBeamOutput::RecordpBeInteraction(G4HadFinalState* aParticleChange)
   }
   fProductionTree->Fill();
 }
+
+void NuBeamOutput::RecordNuParentDecay(const G4Track* aTrack)
+{
+  if(!fSaveRestFrameDecay && false) return;
+}
+
 void NuBeamOutput::RecordBeginOfEvent(const G4Event*)
 {
 }
@@ -266,6 +275,8 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   //
   NuBeamRunManager *pRunManager=
     reinterpret_cast<NuBeamRunManager*>(G4RunManager::GetRunManager());
+
+  bool debug = false;
   
   G4ThreeVector pos = track->GetPosition()/CLHEP::mm; 
   const double x = pos.x();
@@ -273,6 +284,8 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   const double z = pos.z();
   G4ThreeVector NuMomentum = track->GetMomentum();
   G4int parentID           = track->GetParentID();
+
+  G4double nimpwt = 1.0; // keep track of this. Sometimes it gets overwritten by Bertini
   
   NuBeamTrajectory* NuParentTrack   = GetTrajectory(parentID);
   G4ThreeVector ParentMomentumFinal = NuParentTrack->GetFinalMomentum();
@@ -299,6 +312,25 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
        NuParentTrack->GetParticleDefinition()==G4KaonZeroLong::KaonZeroLong()) &&
       ParentMomentumFinal.mag()<fKaonMomentumThr) return;
 
+  /*
+  G4cout << "RecordNeutrino called for track with ID " << track->GetTrackID() << "!" << G4endl;
+  NuBeamTrajectory* parent_traj = GetTrajectory(track->GetParentID());
+  G4cout << "Its parent has ID " << parent_traj->GetTrackID() 
+	 << " and particle name " << parent_traj->GetParticleDefinition()->GetParticleName()
+	 << " and its creator process name was " << track->GetCreatorProcess()->GetProcessName()
+	 << G4endl;
+  */
+  /*
+  std::vector<NuBeamTrajectory*> daughters = parent_traj->GetDaughterTrajectories();
+  int idx_dau = 0;
+  for( std::vector<NuBeamTrajectory*>::iterator it_dau = daughters.begin(); it_dau != daughters.end();
+       ++it_dau ) { 
+    idx_dau++;
+    G4cout << "Another daughter (" << idx_dau << " out of " << daughters.size() << ") : track ID "
+	   << (*it_dau)->GetTrackID() << ", particle name "
+	   << (*it_dau)->GetParticleDefinition()->GetParticleName() << G4endl;
+  }
+  */
 
   G4int Norig = 2;
   if ((parent_name=="mu+") || (parent_name=="mu-")) Norig = 3;
@@ -352,17 +384,38 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
     fDk2Nu->decay.mupare =  -9999999.; 
   }  
   fDk2Nu->decay.necm = enuzrInGeV; // Now in GeV... 
-  fDk2Nu->decay.nimpwt = track->GetWeight();
+  //fDk2Nu->decay.nimpwt = track->GetWeight(); // Not yet
   
   std::vector<NuBeamTrajectory *> trajs;
   G4int trackIDTmp = track->GetParentID();
+  int iParent = 0;
   while (trackIDTmp > 0) {
     NuBeamTrajectory *tmpTraj = GetTrajectory(trackIDTmp);    
+    // Find the weight from the ancestry stack
+    if( tmpTraj->GetWeight() != 1.0 ) nimpwt = tmpTraj->GetWeight();
+    if( debug ) {
+      G4cout << "\n~~~~~~~~~~~~~~"
+	     << "\nChecking the " << iParent << "th entry..."
+	     << "\nfParticleName = " << tmpTraj->GetParticleName()
+	     << "\nfTrackID  = " << tmpTraj->GetTrackID()
+	     << "\nfParentID = " << tmpTraj->GetParentID()
+	     << "\nfCreatorProcessName = " << tmpTraj->GetCreatorProcessName()
+	     << "\nInitial KE = " << tmpTraj->GetInitialEnergy() - tmpTraj->GetMass()
+	     << "\nFinal KE   = " << tmpTraj->GetFinalEnergy() - tmpTraj->GetMass()
+	     << "\nfInitialMaterialName  = " << tmpTraj->GetInitialMaterialName()
+	     << "\nfInitialVolumeName = " << tmpTraj->GetInitialVolumeName()
+	     << "\nfWeight = " << tmpTraj->GetWeight()
+	     << "\nnimpwt = " << nimpwt
+	     << "\n~~~~~~~~~~~~~~";
+    }
+    iParent++;
     trajs.push_back(tmpTraj);
     trackIDTmp = tmpTraj->GetParentID();
     if(trackIDTmp > 0) tmpTraj = GetTrajectory(trackIDTmp);  
   }
+  if( debug ) G4cout << G4endl;
   std::reverse(trajs.begin(), trajs.end());
+  fDk2Nu->decay.nimpwt = nimpwt;
 
   //add neutrino track info to ancestor since it is not in trajectory container yet
   G4String creatorProc=track->GetCreatorProcess()->GetProcessName()+":"+
@@ -379,6 +432,7 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   for (auto t: trajs) {
     fDk2Nu->vint.push_back(t->GetTrackID());
     std::vector<NuBeamTrajectory::trajPoint_t> trajPoints=t->GetTrajectoryPoints();
+
     //hadron elastic scatterings are added as additional points in trajectory
     for (size_t iTP=0; iTP<trajPoints.size();iTP+=2) {
       bsim::Ancestor a;
@@ -401,6 +455,7 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
       a.pprodpz = 0;
       a.nucleus = 0; //need to add this
       a.proc    = trajPoints[iTP].fCreatorProcessName;
+      //G4cout << "a.proc = " << a.proc << G4endl;
       a.ivol    = trajPoints[iTP].fVolumeName;
       a.imat    = trajPoints[iTP].fMaterialName;
       fDk2Nu->ancestor.push_back(a);
@@ -422,6 +477,8 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   //
   bsim::calcLocationWeights(fDkMeta, fDk2Nu); 
   fOutTreeDk2Nu->Fill(); 
+
+  //G4cout << "Filled neutrino: track ID = " << track->GetTrackID() << "!" << G4endl;
 }
 
 

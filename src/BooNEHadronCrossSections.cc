@@ -250,6 +250,7 @@ BooNEHadronCrossSections::GetQuasiElasticCrossSection(const G4DynamicParticle* a
   else if(aParticle->GetDefinition() == G4PionPlus::PionPlus()){
 
     // piplus quasi-elastic invovles a Breit Wigner and a Regge parametrization with threshold
+
     G4double N, M0, Gamma, p0, s, A, B, C, n, D;
     
     if( ZNucleus == 4 && ANucleus == 9){
@@ -285,7 +286,7 @@ BooNEHadronCrossSections::GetQuasiElasticCrossSection(const G4DynamicParticle* a
   }
 
   else if(aParticle->GetDefinition() == G4PionMinus::PionMinus()){
-  // piminus quasi-elastic invovles a Breit Wigner and a Regge parametrization with threshold
+    // piminus quasi-elastic invovles a Breit Wigner and a Regge parametrization with threshold
     G4double N, M0, Gamma, p0, s, A, B, C, n, D;
     
     if( ZNucleus == 4 && ANucleus == 9){
@@ -473,7 +474,8 @@ BooNEHadronCrossSections::GetInelasticCrossSection(const G4DynamicParticle* aPar
 G4double BooNEHadronCrossSections::
 BreitWigner(G4double p, G4double mHadron, G4double mTarget, G4double N, G4double M0, G4double Gamma)
 {
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   G4double EHadron     = sqrt(mHadron*mHadron + p*p);
   G4double m           = sqrt( pow(EHadron+mTarget,2) - pow(p,2) );
 
@@ -482,7 +484,7 @@ BreitWigner(G4double p, G4double mHadron, G4double mTarget, G4double N, G4double
   G4double bw          = numerator/denominator;
 
   return bw;
-   
+#pragma GCC diagnostic pop
 }
 
 // note this function works for Be and Al only!
@@ -557,11 +559,11 @@ CarrollBreitWigner(G4double p,  G4double A,  G4double mHadron)
 G4double BooNEHadronCrossSections::
 Regge(G4double p, G4double A, G4double B, G4double n, G4double C, G4double D)
 {
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   G4double regge = A + B * pow(p,n) + C * pow(log(p), 2) + D * log(p);
   return regge;
-
-
+#pragma GCC diagnostic pop
 }
 
 // Regge parameterization with threshold
@@ -569,9 +571,11 @@ G4double BooNEHadronCrossSections::
 ReggeWithThreshold(G4double p, G4double p0, G4double s, 
 		   G4double A, G4double B, G4double n, G4double C, G4double D)
 {
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
   G4double threshold = 0.5 * (1 + tanh( s*(p - p0) ) );
   G4double regge     = Regge(p, A, B, n, C, D);
   return threshold * regge;
+#pragma GCC diagnostic pop
 }
 

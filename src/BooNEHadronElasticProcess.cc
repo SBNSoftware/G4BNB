@@ -51,6 +51,23 @@ G4VParticleChange* BooNEHadronElasticProcess::PostStepDoIt(const G4Track& aTrack
       tInfo->SetCreatorModelName(GetHadronicInteraction()->GetModelName());   
       theParticleChange->AddSecondary(secVec[i]);
   }
+
+  /*
+  G4cout << " An elastic interaction happened for track ID " << aTrack.GetTrackID()
+	 << " with particle name "
+	 << aTrack.GetDefinition()->GetParticleName() << " and KE = "
+	 << aTrack.GetKineticEnergy()
+	 << " and weight = " << aTrack.GetWeight() << G4endl;
+
+  G4cout << "\n";
+  for( G4int i = 0; i < theParticleChange->GetNumberOfSecondaries(); i++ ) {
+    G4Track * sec = theParticleChange->GetSecondary( static_cast<size_t>(i) );
+    G4cout << "sec " << i << " name " << sec->GetParticleDefinition()->GetParticleName()
+	   << " weight " << sec->GetWeight()
+	   << " KE " << sec->GetKineticEnergy() << "\n"; 
+  }
+  G4cout << "\n" << G4endl;
+  */
   
   return theParticleChange;
 }

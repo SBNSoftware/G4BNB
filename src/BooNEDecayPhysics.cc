@@ -19,6 +19,8 @@
 #include "G4PhaseSpaceDecayChannel.hh"
 #include "G4KL3DecayChannel.hh"
 
+#include "BooNEKaonDecayChannel.hh"
+
 BooNEDecayPhysics::BooNEDecayPhysics(G4int ver)
   :  G4VPhysicsConstructor("BooNEDecay"), verbose(ver), wasActivated(false)
 {
@@ -65,7 +67,9 @@ void BooNEDecayPhysics::ConstructProcess()
   G4PhysicsListHelper* ph = G4PhysicsListHelper::GetPhysicsListHelper();
 
   // Add Decay Process
-  G4Decay* decayProcess = new G4Decay();
+  //G4Decay* decayProcess = new G4Decay();
+  BooNECustomDecay * decayProcess = new BooNECustomDecay();
+  auto aParticleIterator = GetParticleIterator();
   aParticleIterator->reset();
   G4ParticleDefinition* particle=0;
 
@@ -127,6 +131,12 @@ void BooNEDecayPhysics::CorrectDecayTables()
 	   << brsum << ")" << G4endl;
   }
 
+  // Kaon form factors. As in g4numi.cc
+  G4double lamp = 2.81e-2; G4double lam0 = 1.64e-2;
+  G4double xikp = 12.377 * (lam0-lamp);
+  G4double xik0 = 11.713 * (lam0-lamp);
+  G4double xi   = -0.19; // as in miniBooNE paper
+
   // kaon+ -> mu+ + nu_mu
   mode[0] = new G4PhaseSpaceDecayChannel("kaon+",kp_mup_numu,2,"mu+","nu_mu");
   // kaon+ -> pi+ + pi0
@@ -136,9 +146,13 @@ void BooNEDecayPhysics::CorrectDecayTables()
   // kaon+ -> pi+ + pi0 + pi0
   mode[3] = new G4PhaseSpaceDecayChannel("kaon+",kp_pip_pi0_pi0,3,"pi+","pi0","pi0");
   // kaon+ -> pi0 + e+ + nu_e (Ke3)
-  mode[4] = new G4KL3DecayChannel("kaon+",kp_pi0_ep_nue,"pi0","e+","nu_e");
+  //mode[4] = new G4KL3DecayChannel("kaon+",kp_pi0_ep_nue,"pi0","e+","nu_e");
+  //mode[4] = new BooNEKaonDecayChannel("kaon+",kp_pi0_ep_nue,"pi0","e+","nu_e",lamp,xikp);
+  mode[4] = new BooNEKaonDecayChannel("kaon+",kp_pi0_ep_nue,"pi0","e+","nu_e",lamp,xi);
   // kaon+ -> pi0 + mu+ + nu_mu (Kmu3)
-  mode[5] = new G4KL3DecayChannel("kaon+",kp_pi0_mup_numu,"pi0","mu+","nu_mu");
+  //mode[5] = new G4KL3DecayChannel("kaon+",kp_pi0_mup_numu,"pi0","mu+","nu_mu");
+  //mode[5] = new BooNEKaonDecayChannel("kaon+",kp_pi0_mup_numu,"pi0","mu+","nu_mu",lamp,xikp);
+  mode[5] = new BooNEKaonDecayChannel("kaon+",kp_pi0_mup_numu,"pi0","mu+","nu_mu",lamp,xi);
 
   // load decay modes into the decay table
   for (G4int index=0; index<nmodes; index++ ) {
@@ -174,9 +188,13 @@ void BooNEDecayPhysics::CorrectDecayTables()
   // kaon- -> pi- + pi0 + pi0
   mode[3] = new G4PhaseSpaceDecayChannel("kaon-",km_pim_pi0_pi0,3,"pi-","pi0","pi0");
   // kaon- -> pi0 + e- + anti_nu_e (Ke3)
-  mode[4] = new G4KL3DecayChannel("kaon-",km_pi0_em_nuebar,"pi0","e-","anti_nu_e");
+  //mode[4] = new G4KL3DecayChannel("kaon-",km_pi0_em_nuebar,"pi0","e-","anti_nu_e");
+  //mode[4] = new BooNEKaonDecayChannel("kaon-",km_pi0_em_nuebar,"pi0","e-","anti_nu_e",lamp,xikp);
+  mode[4] = new BooNEKaonDecayChannel("kaon-",km_pi0_em_nuebar,"pi0","e-","anti_nu_e",lamp,xi);
   // kaon- -> pi0 + mu- + anti_nu_mu (Kmu3)
-  mode[5] = new G4KL3DecayChannel("kaon-",km_pi0_mum_numubar,"pi0","mu-","anti_nu_mu");
+  //mode[5] = new G4KL3DecayChannel("kaon-",km_pi0_mum_numubar,"pi0","mu-","anti_nu_mu");
+  //mode[5] = new BooNEKaonDecayChannel("kaon-",km_pi0_mum_numubar,"pi0","mu-","anti_nu_mu",lamp,xikp);
+  mode[5] = new BooNEKaonDecayChannel("kaon-",km_pi0_mum_numubar,"pi0","mu-","anti_nu_mu",lamp,xi);
 
   for (G4int index=0; index<nmodes; index++ ) {
     pKaonMinusDecayTable->Insert(mode[index]);
@@ -221,13 +239,22 @@ void BooNEDecayPhysics::CorrectDecayTables()
   // kaon0L -> pi0 + pi+ + pi-
   mode[1] = new G4PhaseSpaceDecayChannel("kaon0L",kl_pip_pim_pi0,3,"pi0","pi+","pi-");
   // kaon0L -> pi- + e+ + nu_e (Ke3)
-  mode[2] = new G4KL3DecayChannel("kaon0L",kl_pim_ep_nue,"pi-","e+","nu_e");
+  // Note how all these modes have lamp (0.0281) not lam0 (0.0164). This is as in NuMI
+  //mode[2] = new G4KL3DecayChannel("kaon0L",kl_pim_ep_nue,"pi-","e+","nu_e");
+  //mode[2] = new BooNEKaonDecayChannel("kaon0L",kl_pim_ep_nue,"pi-","e+","nu_e",lamp,xik0);
+  mode[2] = new BooNEKaonDecayChannel("kaon0L",kl_pim_ep_nue,"pi-","e+","nu_e",lamp,xi);
   // kaon0L -> pi+ + e- + anti_nu_e (Ke3)
-  mode[3] = new G4KL3DecayChannel("kaon0L",kl_pip_em_nuebar,"pi+","e-","anti_nu_e");
+  //mode[3] = new G4KL3DecayChannel("kaon0L",kl_pip_em_nuebar,"pi+","e-","anti_nu_e");
+  //mode[3] = new BooNEKaonDecayChannel("kaon0L",kl_pip_em_nuebar,"pi+","e-","anti_nu_e",lamp,xik0);
+  mode[3] = new BooNEKaonDecayChannel("kaon0L",kl_pip_em_nuebar,"pi+","e-","anti_nu_e",lamp,xi);
   // kaon0L -> pi- + mu+ + nu_mu (Kmu3)
-  mode[4] = new G4KL3DecayChannel("kaon0L",kl_pim_mup_numu,"pi-","mu+","nu_mu");
+  //mode[4] = new G4KL3DecayChannel("kaon0L",kl_pim_mup_numu,"pi-","mu+","nu_mu");
+  //mode[4] = new BooNEKaonDecayChannel("kaon0L",kl_pim_mup_numu,"pi-","mu+","nu_mu",lamp,xik0);
+  mode[4] = new BooNEKaonDecayChannel("kaon0L",kl_pim_mup_numu,"pi-","mu+","nu_mu",lamp,xi);
   // kaon0L -> pi+ + mu- + anti_nu_mu (Kmu3)
-  mode[5] = new G4KL3DecayChannel("kaon0L",kl_pip_mum_numubar,"pi+","mu-","anti_nu_mu");
+  //mode[5] = new G4KL3DecayChannel("kaon0L",kl_pip_mum_numubar,"pi+","mu-","anti_nu_mu");
+  //mode[5] = new BooNEKaonDecayChannel("kaon0L",kl_pip_mum_numubar,"pi+","mu-","anti_nu_mu",lamp,xik0);
+  mode[5] = new BooNEKaonDecayChannel("kaon0L",kl_pip_mum_numubar,"pi+","mu-","anti_nu_mu",lamp,xi);
   // kaon0L -> pi+ + pi-
   mode[6] = new G4PhaseSpaceDecayChannel("kaon0L",kl_pip_pim,2,"pi+","pi-");
   // kaon0L -> pi0 + pi0

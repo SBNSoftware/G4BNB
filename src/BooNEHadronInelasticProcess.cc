@@ -1,6 +1,8 @@
 #include "BooNEHadronInelasticProcess.hh"
 #include "BooNEHadronInelasticDataSet.hh"
 #include "BooNEpBeInteraction.hh"
+#include "BooNEpXInteraction.hh"
+#include "XSecArrayHolder.hh"
 #include "NuBeamRunManager.hh"
 #include "NuBeamOutput.hh"
 #include "NuBeamTrackInformation.hh"
@@ -53,6 +55,17 @@ BooNEHadronInelasticProcess(const G4ParticleDefinition& aParticleType)
     
     fBooNEpBeModel=new BooNEpBeInteraction();
     RegisterMe(fBooNEpBeModel);
+
+    // Define wrappers to the interaction models we use, 1 instance for each.
+    // This allows all of them to ask the BooNEpBeModel for its xsec arrays to use in weighting
+    fBooNEModel_pBe = new BooNEpXInteraction( fBooNEpBeModel );
+    RegisterMe(fBooNEModel_pBe);
+
+    fBooNEModel_LEp = new BooNEpXInteraction( fLEProtonModel );
+    RegisterMe(fBooNEModel_LEp);
+
+    fBooNEModel_HEp = new BooNEpXInteraction( fHEProtonModel );
+    RegisterMe(fBooNEModel_HEp);
   } else if (aParticleType==*(G4Neutron::Neutron())) {
     G4CascadeInterface* theLENeutronModel=new G4CascadeInterface();
     theLENeutronModel->SetMaxEnergy(5.0*CLHEP::GeV);
@@ -151,6 +164,8 @@ IsApplicable(const G4ParticleDefinition& aParticleType)
 G4VParticleChange*
 BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
 {
+  //double trackenergy = aTrack.GetKineticEnergy(); // + aTrack.GetParticleDefinition()->GetPDGMass();
+
   // if primary is not Alive then do nothing
   theTotalResult->Clear();
   theTotalResult->Initialize(aTrack);
@@ -160,14 +175,15 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
   // Find cross section at end of step and check if <= 0
   //
   const G4DynamicParticle* aParticle = aTrack.GetDynamicParticle();
+  G4DynamicParticle acParticle(*aParticle);
   G4Material* aMaterial = aTrack.GetMaterial();
 
   G4Element* anElement = 0;
   try
   {
-    anElement = GetCrossSectionDataStore()->SampleZandA(aParticle,
-							 aMaterial,
-							 *GetTargetNucleusPointer());
+    anElement = const_cast<G4Element *>( GetCrossSectionDataStore()->SampleZandA(&acParticle,
+										 aMaterial,
+										 *GetTargetNucleusPointer()) );
   }
   catch(G4HadronicException & aR)
   {
@@ -208,10 +224,29 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
   // Initialize the hadronic projectile from the track
   thePro.Initialise(aTrack);
 
+  // Check if Bertini cascade fired to fix weight
+  bool interaction_is_bertini = false;
+  bool interaction_is_ftfp = false;
   try
   {
-    fInteraction =
+    G4HadronicInteraction * chosen_interaction = 
       this->ChooseHadronicInteraction( thePro, *GetTargetNucleusPointer(), aMaterial, anElement );
+    if( thePro.GetDefinition() == G4Proton::ProtonDefinition() ) {
+      if( strcmp( chosen_interaction->GetModelName(), fBooNEModel_pBe->GetIntModelName() ) == 0 )
+	fInteraction = fBooNEModel_pBe;
+      else if( strcmp( chosen_interaction->GetModelName(), fBooNEModel_LEp->GetIntModelName() ) == 0 )
+	fInteraction = fBooNEModel_LEp;
+      else if( strcmp( chosen_interaction->GetModelName(), fBooNEModel_HEp->GetIntModelName() ) == 0 )
+	fInteraction = fBooNEModel_HEp;
+    } else fInteraction = new BooNEpXInteraction( chosen_interaction, false ); // ugly and leaky
+
+    if( chosen_interaction->GetModelName().find("Bertini") != std::string::npos && 
+	thePro.GetDefinition() != G4Proton::ProtonDefinition() )
+      interaction_is_bertini = true;
+    if( chosen_interaction->GetModelName().find("FTFP") != std::string::npos &&
+	thePro.GetDefinition() != G4Proton::ProtonDefinition() )
+      interaction_is_ftfp = true;
+      
   }
   catch(G4HadronicException & aE)
   {
@@ -233,9 +268,29 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
   {
     try
     {
-      // Call the interaction
+      // Call the interaction and get weighted results
       result = fInteraction->ApplyYourself( thePro, *GetTargetNucleusPointer());
       ++reentryCount;
+      // And now update the weight of everything in the hadronic FS by the weight of the parent...
+      for( G4int i = 0; i < result->GetNumberOfSecondaries(); i++ ) {
+	G4HadSecondary * sec = result->GetSecondary( static_cast<size_t>(i) );
+	sec->SetWeight( sec->GetWeight() * aTrack.GetWeight() );
+	if( interaction_is_bertini || interaction_is_ftfp )
+	  sec->SetWeight( 1.0 ); // avoid double counting
+      }
+
+      /*
+      G4cout << "After doing the dance, the secondaries have weights: " << G4endl;
+      G4cout << "\n";
+      for( G4int i = 0; i < result->GetNumberOfSecondaries(); i++ ) {
+	G4HadSecondary * sec = result->GetSecondary( static_cast<size_t>(i) );
+	G4cout << "sec " << i << " name " << sec->GetParticle()->GetParticleDefinition()->GetParticleName()
+	       << " weight " << sec->GetWeight() * aTrack.GetWeight()
+	       << " KE " << sec->GetParticle()->GetKineticEnergy() << "\n"; 
+      }
+      G4cout << "\n" << G4endl;
+      */
+
     }
     catch(G4HadronicException aR)
     {
@@ -302,6 +357,21 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
     tInfo->SetCreatorModelName(GetHadronicInteraction()->GetModelName()); 
   }
 
+  //G4ThreeVector * momdir = const_cast<G4ThreeVector * >( theTotalResult->GetMomentumDirection() );
+  //theTotalResult->ProposeEnergy(trackenergy);
+
+  // Revert the old track info to get it stored properly in the last step of ancestry tree
+  // Same as in BooNEHadronElasticProcess.cc
+  theTotalResult->ProposeMomentumDirection(aTrack.GetMomentumDirection());
+  theTotalResult->ProposeEnergy(aTrack.GetKineticEnergy());
+  theTotalResult->ProposePolarization(aTrack.GetPolarization());
+  theTotalResult->ProposeVelocity(aTrack.GetVelocity());
+  //theTotalResult->ProposeTrackStatus(fStopAndKill);
+  // omitting bit about secondaries here..
+
+  // Delete pointer to fInteraction if this was not a proton
+  if( thePro.GetDefinition() != G4Proton::ProtonDefinition() ) delete fInteraction;
+  
   return theTotalResult;
 }
 
@@ -337,6 +407,8 @@ G4HadronicInteraction* BooNEHadronInelasticProcess::ChooseHadronicInteraction(G4
     }
   } else 
     hadInt=G4HadronicProcess::ChooseHadronicInteraction(hadProj, aNucl, aMat ,anElement);
+
+  //G4cout << "This interaction has model named " << hadInt->GetModelName() << G4endl;
   
   return hadInt;
 }

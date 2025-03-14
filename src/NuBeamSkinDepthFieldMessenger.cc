@@ -4,6 +4,7 @@
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithABool.hh"
 #include "G4UIcmdWithADoubleAndUnit.hh"
+#include "G4Polycone.hh"
 
 #include "NuBeamSkinDepthFieldMessenger.hh"
 #include "NuBeamSkinDepthField.hh"
@@ -41,7 +42,7 @@ NuBeamSkinDepthFieldMessenger::NuBeamSkinDepthFieldMessenger(NuBeamSkinDepthFiel
   fSkinDepthHornCurrentCmd->SetGuidance("Available options: any positive or negative floating-point number, with a valid unit for the current (e.g. kA, A, etc.)");
   fSkinDepthHornCurrentCmd->SetParameterName("hornCur", true, false);
   fSkinDepthHornCurrentCmd->SetDefaultUnit("ampere");
-  fSkinDepthHornCurrentCmd->SetDefaultValue(fSkinDepthField->GetSkinDepthHornCurrent());
+  fSkinDepthHornCurrentCmd->SetDefaultValue(fSkinDepthField->GetSkinDepthHornCurrent()/CLHEP::ampere);
 
 }
 

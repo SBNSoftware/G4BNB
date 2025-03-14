@@ -17,6 +17,7 @@
 
 #include "NuBeamOutput.hh"
 #include "NuBeamTrackInformation.hh"
+#include "NuBeamTrajectory.hh"
 
 NuBeamSteppingAction::NuBeamSteppingAction()
 :fMessenger(0)
@@ -43,7 +44,6 @@ NuBeamSteppingAction::~NuBeamSteppingAction()
 void NuBeamSteppingAction::UserSteppingAction(const G4Step* s)
 {
   G4Track* theTrack=s->GetTrack();
-
   G4ParticleDefinition* particleType = theTrack->GetDefinition();
 
   G4bool interestingTrack = 
@@ -75,7 +75,7 @@ void NuBeamSteppingAction::UserSteppingAction(const G4Step* s)
 	  G4TrackVector* trackVec = fpSteppingManager->GetfSecondary();
 	  trackVec->push_back(newTrackPos);
 
-	  theTrack->SetTrackStatus(fStopAndKill);	  
+	  theTrack->SetTrackStatus(fStopAndKill);
 	}
 	
 	if(fPerfectFocusingForNegatives && theTrack->GetDefinition()->GetPDGCharge() < 0.) {
@@ -88,6 +88,8 @@ void NuBeamSteppingAction::UserSteppingAction(const G4Step* s)
 	  newTrackNeg->SetWeight(theTrack->GetWeight());
 	  G4TrackVector* trackVec = fpSteppingManager->GetfSecondary();
 	  trackVec->push_back(newTrackNeg);
+
+	  theTrack->SetTrackStatus(fStopAndKill);
 	}
       }
   }

@@ -3,9 +3,13 @@
  
 #include "globals.hh"
 #include "G4HadronicProcess.hh"
+#include "BooNEpXInteraction.hh"
 
 class BooNEpBeInteraction;
+class BooNEpXInteraction;
 class G4InelasticInteraction;
+
+class XSecArrayHolder;
 
 class BooNEHadronInelasticProcess : public G4HadronicProcess
 {
@@ -24,9 +28,9 @@ protected:
   //overlap in energy with otherwise default model and choose BooNEpBe model
   //exclusively in applicable region
   G4HadronicInteraction* ChooseHadronicInteraction(G4HadProjectile&, G4Nucleus&, G4Material*&, G4Element*&);
-
+  
   // access to the chosen generator
-  G4HadronicInteraction* GetHadronicInteraction() const
+  BooNEpXInteraction* GetHadronicInteraction() const
   { return fInteraction; }
 
 private:
@@ -35,7 +39,12 @@ private:
   BooNEpBeInteraction*        fBooNEpBeModel;
   G4HadronicInteraction*      fLEProtonModel;
   G4HadronicInteraction*      fHEProtonModel;
-  G4HadronicInteraction*      fInteraction;
+  // Wrappers around the above models with abstracted ApplyYourself()
+  BooNEpXInteraction*         fBooNEModel_pBe;
+  BooNEpXInteraction*         fBooNEModel_LEp;
+  BooNEpXInteraction*         fBooNEModel_HEp;
+  //G4HadronicInteraction*      fInteraction;
+  BooNEpXInteraction*         fInteraction;
 
 };
 #endif

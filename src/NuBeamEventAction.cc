@@ -37,7 +37,7 @@ void NuBeamEventAction::BeginOfEventAction(const G4Event* anEvent)
   //printing survey
   if (evtNb > 100)  fPrintModulo = 100;
   if (evtNb > 1000)  fPrintModulo = 1000;
-  if (evtNb > 10000)  fPrintModulo = 10000;
+  if (evtNb > 10000 && false)  fPrintModulo = 10000;
   if (evtNb%fPrintModulo == 0) {
     G4cout << "\n---> Begin of event: " << evtNb << G4endl;
   }

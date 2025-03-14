@@ -41,12 +41,12 @@ void NuBeamStackingAction::PrepareNewEvent()
 }
 
 void NuBeamStackingAction::KillEMParticles(G4ClassificationOfNewTrack &classification, 
-					 const G4Track * aTrack)
+					   const G4Track * aTrack)
 {
    G4ParticleDefinition * particleType = aTrack->GetDefinition();
-   bool isEM =   (particleType==G4Gamma::GammaDefinition()       ||
-		  particleType==G4Electron::ElectronDefinition()  ||
-		  particleType==G4Positron::PositronDefinition());
+   bool isEM =   ( particleType==G4Gamma::GammaDefinition()       ||
+		   particleType==G4Electron::ElectronDefinition()  ||
+		   particleType==G4Positron::PositronDefinition() );
 
    if (isEM)
      classification=fKill;
@@ -71,7 +71,7 @@ void NuBeamStackingAction::KillThresholdParticles(G4ClassificationOfNewTrack& cl
       (particleType!=G4AntiNeutrinoTau::AntiNeutrinoTau())) {
     G4double energy = aTrack->GetKineticEnergy();
     
-    if ((energy < 0.05*CLHEP::GeV ) && (classification != fKill))
+    if ((energy < 0.05 *CLHEP::GeV ) && (classification != fKill))
       {classification = fKill;} 
   }  
 }

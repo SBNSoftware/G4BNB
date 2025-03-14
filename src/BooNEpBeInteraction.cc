@@ -1,5 +1,6 @@
 #include "BooNEpBeInteractionMessenger.hh"
 #include "BooNEpBeInteraction.hh"
+#include "XSecArrayHolder.hh"
 #include "BooNEHadronPhysics.hh"
 #include "NuBeamRunManager.hh"
 
@@ -1529,6 +1530,25 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
     KPlusMaxXSec = GetMax( KPlusXSecArray );
     KMinusMaxXSec = GetMax( KMinusXSecArray );
     KZeroLongMaxXSec = GetMax( KZeroLongXSecArray );
+
+    // Also at this point, we need to let the singleton know what xsec it can expect.
+    XSecArrayHolder& xsec_holder = XSecArrayHolder::Instance();
+    if( !xsec_holder.IsInitialised() ) {
+      xsec_holder.LoadXSecData( ProtonXSecArray,
+				NeutronXSecArray,
+				PiPlusXSecArray,
+				PiMinusXSecArray,
+				KPlusXSecArray,
+				KMinusXSecArray,
+				KZeroLongXSecArray,
+				ProtonXSecNoWgtArray,
+				NeutronXSecNoWgtArray,
+				PiPlusXSecNoWgtArray,
+				PiMinusXSecNoWgtArray,
+				KPlusXSecNoWgtArray,
+				KMinusXSecNoWgtArray,
+				KZeroLongXSecNoWgtArray );
+    }
   }
 
   if (PhysicsVerbose) {
@@ -1586,7 +1606,7 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
     G4HadSecondary *aProtonSec
       = new G4HadSecondary(aProton, invRwgtFactor);
     theParticleChange.AddSecondary(aProtonSec->GetParticle());
-    theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
+    //theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
     //
     if (PhysicsVerbose) {
       G4cout << "Proton Number: " << iProton <<
@@ -1610,7 +1630,7 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
     G4HadSecondary *aNeutronSec
       = new G4HadSecondary(aNeutron, invRwgtFactor);
     theParticleChange.AddSecondary(aNeutronSec->GetParticle());
-    theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
+    //theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
     //
     if (PhysicsVerbose) {
       G4cout << "Neutron Number: " << iNeutron <<
@@ -1634,7 +1654,7 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
       G4HadSecondary *aPiPlusSec
 	  = new G4HadSecondary(aPiPlus, invRwgtFactor);
       theParticleChange.AddSecondary(aPiPlusSec->GetParticle());
-      theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
+      //theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
       //
       if (PhysicsVerbose) {
 	G4cout << "PiPlus Number: " << iPiPlus <<
@@ -1657,7 +1677,7 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
       G4HadSecondary *aPiMinusSec
 	= new G4HadSecondary(aPiMinus, invRwgtFactor);
       theParticleChange.AddSecondary(aPiMinusSec->GetParticle());
-      theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
+      //theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
       //
       if (PhysicsVerbose) {
 	G4cout << "PiMinus Number: " << iPiMinus <<
@@ -1682,7 +1702,7 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
     G4HadSecondary *aKPlusSec
       = new G4HadSecondary(aKPlus, invRwgtFactor);
     theParticleChange.AddSecondary(aKPlusSec->GetParticle());
-    theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
+    //theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
     //
     if (PhysicsVerbose) {
       G4cout << "KPlus Number: " << iKPlus <<
@@ -1706,7 +1726,7 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
     G4HadSecondary *aKMinusSec
       = new G4HadSecondary(aKMinus, invRwgtFactor);
     theParticleChange.AddSecondary(aKMinusSec->GetParticle());
-    theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
+    //theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
     //
     if (PhysicsVerbose) {
       G4cout << "KMinus Number: " << iKMinus <<
@@ -1730,7 +1750,7 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
     G4HadSecondary *aKZeroLongSec
       = new G4HadSecondary(aKZeroLong, invRwgtFactor);
     theParticleChange.AddSecondary(aKZeroLongSec->GetParticle());
-    theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
+    //theParticleChange.GetSecondary(theParticleChange.GetNumberOfSecondaries()-1)->SetWeight(invRwgtFactor);
     //
     if (PhysicsVerbose) {
       G4cout << "KZeroLong Number: " << iKZeroLong <<
@@ -2468,8 +2488,15 @@ G4double BooNEpBeInteraction::GetpBeInelasticCrossSection( G4double totalMomentu
 	  (*procVec)[iproc]->GetProcessSubType()==G4HadronicProcessType::fHadronInelastic) {
 	G4HadronicProcess* hadProc=dynamic_cast<G4HadronicProcess*> ((*procVec)[iproc]);
 
-	xsec = hadProc->GetElementCrossSection(dummyProton, G4Element::GetElement("Be"));
+	G4Element * myElement = G4Element::GetElement("Be");
+	G4Material * myMat = G4Material::GetMaterial("Be");
+	if( ! myMat ) {
+	  myMat = new G4Material("Be", 1.85*CLHEP::g/CLHEP::cm3, 1);
+	  myMat->AddElement(myElement, 1.0);
+	}
 
+	//xsec = hadProc->GetElementCrossSection(dummyProton, G4Element::GetElement("Be"));
+	xsec = hadProc->GetElementCrossSection(dummyProton, myElement, myMat);
       }
     }
   }

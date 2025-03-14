@@ -125,12 +125,14 @@ void NuBeamTrajectory::ShowTrajectory(std::ostream& os) const
      << " points." << G4endl;
   
   for( size_t i=0 ; i < fPositionRecord->size() ; i++) {
+
     G4TrajectoryPoint* aTrajectoryPoint =
       (G4TrajectoryPoint*)((*fPositionRecord)[i]);
     os << "Point[" << i << "]" 
-       << " Position= " << aTrajectoryPoint->GetPosition() << G4endl;
+      << " Position= " << aTrajectoryPoint->GetPosition() << G4endl;
   }
 }
+
 /*
 void NuBeamTrajectory::DrawTrajectory() const
 {
@@ -233,4 +235,27 @@ NuBeamTrajectory* NuBeamTrajectory::GetParentTrajectory()
     if((*tr)->GetTrackID()==fParentID) return dynamic_cast<NuBeamTrajectory*>(*tr);
   }
   return 0;
+}
+
+std::vector<NuBeamTrajectory*> NuBeamTrajectory::GetDaughterTrajectories()
+{
+  std::vector<NuBeamTrajectory*> daughters;
+  G4TrajectoryContainer* container = 
+    G4RunManager::GetRunManager()->GetCurrentEvent()->GetTrajectoryContainer();
+  if(container==0) return daughters;
+  TrajectoryVector* vect = container->GetVector();
+  TrajectoryVector::iterator tr = vect->begin();
+
+  //G4cout << "Considering " << vect->size() << " trajectories" << G4endl;
+  for( ; tr != vect->end() ; ++tr ) {
+    /*
+    G4cout << "Considering track with ID " << (*tr)->GetTrackID()
+	   << ", parent ID " << (*tr)->GetParentID()
+	   << " (there are " << container->size() << " trajectories to consider)" << G4endl;
+    */
+    if( (*tr)->GetParentID() == fTrackID ) 
+      daughters.emplace_back( dynamic_cast<NuBeamTrajectory*>( *tr ) );
+  }
+
+  return daughters;
 }

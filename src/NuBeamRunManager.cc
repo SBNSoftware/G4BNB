@@ -32,5 +32,6 @@ void NuBeamRunManager::InitializePhysics()
   G4cout<<"NuBeamRunManager::Initialize physics."<<G4endl;
   G4RunManager::InitializePhysics();
   fPhysicsInitializedHere = true;
+  G4cout<<"NuBeamRunManager::Physics initialized successfully."<<G4endl;
  }
 
