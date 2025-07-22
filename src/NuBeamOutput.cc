@@ -376,6 +376,9 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   fDk2Nu->vint.clear();
 
   // Now fill ancestry info. 
+  std::ostringstream asts, wsts;
+  asts << "0";
+  wsts << "1.0";
   for (auto t: trajs) {
     fDk2Nu->vint.push_back(t->GetTrackID());
     std::vector<NuBeamTrajectory::trajPoint_t> trajPoints=t->GetTrajectoryPoints();
@@ -405,7 +408,12 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
       a.imat    = trajPoints[iTP].fMaterialName;
       fDk2Nu->ancestor.push_back(a);
     }
+    // Output the track ID to keep track *ba dum tss*
+    asts << " --> " << t->GetTrackID();
+    wsts << ", " << t->GetWeight();
   }
+  G4cout << asts.str() << "\n";
+  G4cout << wsts.str() << "\n";
   
   if (fDk2Nu->ancestor.size() == 1) { 
     std::cerr << " Incorrect ancestry...  Final number of ancestor at evt " << fDk2Nu->potnum 
