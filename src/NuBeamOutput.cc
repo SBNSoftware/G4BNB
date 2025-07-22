@@ -352,7 +352,7 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
     fDk2Nu->decay.mupare =  -9999999.; 
   }  
   fDk2Nu->decay.necm = enuzrInGeV; // Now in GeV... 
-  fDk2Nu->decay.nimpwt = track->GetWeight();
+  //fDk2Nu->decay.nimpwt = track->GetWeight();
   
   std::vector<NuBeamTrajectory *> trajs;
   G4int trackIDTmp = track->GetParentID();
@@ -376,9 +376,8 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   fDk2Nu->vint.clear();
 
   // Now fill ancestry info. 
-  std::ostringstream asts, wsts;
-  asts << "0";
-  wsts << "1.0";
+  // Set a global to track the previous weight.. if not 1, the weight should be that (1 pBe interaction that sets weight)
+  G4double impwt = 1.0;
   for (auto t: trajs) {
     fDk2Nu->vint.push_back(t->GetTrackID());
     std::vector<NuBeamTrajectory::trajPoint_t> trajPoints=t->GetTrajectoryPoints();
@@ -408,12 +407,11 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
       a.imat    = trajPoints[iTP].fMaterialName;
       fDk2Nu->ancestor.push_back(a);
     }
-    // Output the track ID to keep track *ba dum tss*
-    asts << " --> " << t->GetTrackID();
-    wsts << ", " << t->GetWeight();
+    if( impwt == 1.0 && t->GetWeight() != 1.0 ) impwt = t->GetWeight();
+    if( t->GetWeight() == 1.0 && impwt != 1.0 ) t->SetWeight( impwt );
   }
-  G4cout << asts.str() << "\n";
-  G4cout << wsts.str() << "\n";
+  //fDk2Nu->decay.nimpwt = track->GetWeight(); // pre-fix
+  fDk2Nu->decay.nimpwt = impwt; // post-fix
   
   if (fDk2Nu->ancestor.size() == 1) { 
     std::cerr << " Incorrect ancestry...  Final number of ancestor at evt " << fDk2Nu->potnum 
