@@ -180,7 +180,7 @@ of.write(ofstr)
 of.close()
 
 #Create submit command
-jobsub_options=" --group=%s --resource-provides=usage_model=DEDICATED,OPPORTUNISTIC --role=Analysis --memory 2000MB --expected-lifetime=8h "%(args.gridgroup)
+jobsub_options=" --group=%s --resource-provides=usage_model=DEDICATED,OPPORTUNISTIC --role=Analysis --memory 2000MB --expected-lifetime=8h --singularity-image /cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest "%(args.gridgroup)
 cmd="jobsub_submit" + jobsub_options + "-N %i --tar_file_name=dropbox://%s file://%s"%(args.n,os.path.abspath(tarfilename),os.path.abspath(runjobfname))
 
 if (not args.debug):
