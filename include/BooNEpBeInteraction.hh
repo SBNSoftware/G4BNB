@@ -20,7 +20,7 @@
 #include "G4ElementTable.hh"
 #include "G4PhysicsTable.hh"
 #include "G4PhysicsVector.hh"
-#include "G4LPhysicsFreeVector.hh"
+#include "G4PhysicsFreeVector.hh"
 #include "G4ThreeVector.hh"
 
 #include "NuBeamOutput.hh"

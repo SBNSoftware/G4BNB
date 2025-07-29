@@ -4,7 +4,15 @@
 #include "NuBeamRunManager.hh"
 #include "NuBeamOutput.hh"
 #include "NuBeamTrackInformation.hh"
-#include "G4HadronInelasticDataSet.hh"
+//#include "G4HadronInelasticDataSet.hh"
+#include "G4ChipsHyperonInelasticXS.hh"
+#include "G4ChipsKaonMinusInelasticXS.hh"
+#include "G4ChipsKaonPlusInelasticXS.hh"
+#include "G4ChipsKaonZeroInelasticXS.hh"
+#include "G4ChipsNeutronInelasticXS.hh"
+#include "G4ChipsProtonInelasticXS.hh"
+#include "G4ChipsPionMinusInelasticXS.hh"
+#include "G4ChipsPionPlusInelasticXS.hh"
 #include "G4ComponentGGHadronNucleusXsc.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4CascadeInterface.hh"
@@ -28,7 +36,16 @@ BooNEHadronInelasticProcess(const G4ParticleDefinition& aParticleType)
     //        data sets have been added to theProtonInelastic.  This is
     //        necessary to ensure that the multiplicities calculated in
     //        BooNEpBeInteraction correspond to the correct p-Be cross-section.
-    AddDataSet(new G4HadronInelasticDataSet());
+    //AddDataSet(new G4HadronInelasticDataSet());
+    G4cout << "FOO ADDING CHIPS DATASETS TO START OF BOONEHIP" << G4endl;
+    AddDataSet(new G4ChipsHyperonInelasticXS());
+    AddDataSet(new G4ChipsKaonMinusInelasticXS());
+    AddDataSet(new G4ChipsKaonPlusInelasticXS());
+    AddDataSet(new G4ChipsKaonZeroInelasticXS());
+    AddDataSet(new G4ChipsNeutronInelasticXS());
+    AddDataSet(new G4ChipsProtonInelasticXS());
+    AddDataSet(new G4ChipsPionPlusInelasticXS());
+    AddDataSet(new G4ChipsPionMinusInelasticXS());
     AddDataSet(booneXsec); //BooNE xsec 
     fLEProtonModel=new G4CascadeInterface();
     fLEProtonModel->SetMaxEnergy(3.5*CLHEP::GeV);
@@ -51,8 +68,10 @@ BooNEHadronInelasticProcess(const G4ParticleDefinition& aParticleType)
     fHEProtonModel->SetMaxEnergy(100.*CLHEP::GeV);
     RegisterMe(fHEProtonModel);
     
+    G4cout << "FOO MAKING THE pBeInteraction" << G4endl;
     fBooNEpBeModel=new BooNEpBeInteraction();
     RegisterMe(fBooNEpBeModel);
+G4cout << "FOO DONE WITH pBe" << G4endl;
   } else if (aParticleType==*(G4Neutron::Neutron())) {
     G4CascadeInterface* theLENeutronModel=new G4CascadeInterface();
     theLENeutronModel->SetMaxEnergy(5.0*CLHEP::GeV);
@@ -74,7 +93,16 @@ BooNEHadronInelasticProcess(const G4ParticleDefinition& aParticleType)
     theHENeutronModel->SetMinEnergy(4.0*CLHEP::GeV);
     theHENeutronModel->SetMaxEnergy(100.*CLHEP::GeV);
     RegisterMe(theHENeutronModel);
-    AddDataSet(new G4HadronInelasticDataSet());
+    //AddDataSet(new G4HadronInelasticDataSet());
+    G4cout << "FOO ADDING CHIPS DATASETS FOR HENEUTRON" << G4endl;
+    AddDataSet(new G4ChipsHyperonInelasticXS());
+    AddDataSet(new G4ChipsKaonMinusInelasticXS());
+    AddDataSet(new G4ChipsKaonPlusInelasticXS());
+    AddDataSet(new G4ChipsKaonZeroInelasticXS());
+    AddDataSet(new G4ChipsNeutronInelasticXS());
+    AddDataSet(new G4ChipsProtonInelasticXS());
+    AddDataSet(new G4ChipsPionPlusInelasticXS());
+    AddDataSet(new G4ChipsPionMinusInelasticXS());
     AddDataSet(booneXsec); //BooNE xsec 
   } else if (aParticleType==*(G4PionPlus::PionPlus()) ||
 	     aParticleType==*(G4PionMinus::PionMinus()) ||
@@ -114,7 +142,16 @@ BooNEHadronInelasticProcess(const G4ParticleDefinition& aParticleType)
     //thePiData = new G4PiNuclearCrossSection;
     //AddDataSet(theKaonDataSet);
 
-    AddDataSet(new G4HadronInelasticDataSet());
+    //AddDataSet(new G4HadronInelasticDataSet());
+    G4cout << "FOO ADDING CHIPS DATASETS FOR FTFP" << G4endl;
+    AddDataSet(new G4ChipsHyperonInelasticXS());
+    AddDataSet(new G4ChipsKaonMinusInelasticXS());
+    AddDataSet(new G4ChipsKaonPlusInelasticXS());
+    AddDataSet(new G4ChipsKaonZeroInelasticXS());
+    AddDataSet(new G4ChipsNeutronInelasticXS());
+    AddDataSet(new G4ChipsProtonInelasticXS());
+    AddDataSet(new G4ChipsPionPlusInelasticXS());
+    AddDataSet(new G4ChipsPionMinusInelasticXS());
     AddDataSet(booneXsec); //BooNE xsec 
   }
  

@@ -16,7 +16,8 @@
 
 #include "G4ComponentGGHadronNucleusXsc.hh"
 #include "G4CrossSectionInelastic.hh"
-#include "G4HadronCaptureProcess.hh"
+//#include "G4HadronCaptureProcess.hh"
+#include "G4NeutronCaptureProcess.hh"
 #include "G4NeutronRadCapture.hh"
 #include "G4NeutronInelasticXS.hh"
 #include "G4NeutronCaptureXS.hh"
@@ -26,7 +27,15 @@
 #include "G4PhysListUtil.hh"
 #include "G4HadronElastic.hh"
 #include "G4CascadeInterface.hh"
-#include "G4HadronInelasticDataSet.hh"
+//#include "G4HadronInelasticDataSet.hh"
+#include "G4ChipsHyperonInelasticXS.hh"
+#include "G4ChipsKaonMinusInelasticXS.hh"
+#include "G4ChipsKaonPlusInelasticXS.hh"
+#include "G4ChipsKaonZeroInelasticXS.hh"
+#include "G4ChipsNeutronInelasticXS.hh"
+#include "G4ChipsProtonInelasticXS.hh"
+#include "G4ChipsPionMinusInelasticXS.hh"
+#include "G4ChipsPionPlusInelasticXS.hh"
 #include "G4Material.hh"
 
 #include "G4GeneratorPrecompoundInterface.hh"
@@ -87,8 +96,10 @@ void BooNEHadronPhysics::ConstructProcess()
        pname == "kaon0L"   ||
        pname == "kaon0S"   ) {
       pManager = particle->GetProcessManager();
+      G4cout << "FOO ADDING BooNEHIP FOR PARTICLE " << pname << G4endl;
       fBooNEHadronInelastic=new BooNEHadronInelasticProcess(*particle);
       pManager->AddDiscreteProcess(fBooNEHadronInelastic);
+      G4cout << "FOO DONE BooNEHIP FOR PARTICLE " << pname << G4endl;
     }
   }
   
@@ -97,9 +108,13 @@ void BooNEHadronPhysics::ConstructProcess()
   fAntiBarionBuilder->RegisterMe(fFTFPAntiBarion=new G4FTFPAntiBarionBuilder(true)); //QuasiElastic = true/false
   fAntiBarionBuilder->Build();
 
+  G4cout << "AM I BASED FATHER" << G4endl;
+
   //Hyperons
   fHyperonBuilder=new G4HyperonFTFPBuilder; 
-  fHyperonBuilder->Build();
+  fHyperonBuilder->Build(new G4HadronInelasticProcess("HyperonFTFP", G4Lambda::LambdaDefinition()));
+
+  G4cout << "BAR FINISHED WITH BooNEHadronPhysics::ConstructProcess()" << G4endl;
 
   return;
 }

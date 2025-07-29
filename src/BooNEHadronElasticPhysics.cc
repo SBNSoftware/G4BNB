@@ -71,7 +71,16 @@ void BooNEHadronElasticPhysics::ConstructProcess()
     }
   }
   fBooNEHadronElasticProcess.RegisterMe(&fBooNEHadronElasticModel);
-  fBooNEHadronElasticProcess.AddDataSet(new G4HadronElasticDataSet());
+  //fBooNEHadronElasticProcess.AddDataSet(new G4HadronElasticDataSet());
+  // Add CHIPS elastic xsec for each particle species...
+  fBooNEHadronElasticProcess.AddDataSet(new G4ChipsHyperonElasticXS());
+  fBooNEHadronElasticProcess.AddDataSet(new G4ChipsKaonMinusElasticXS());
+  fBooNEHadronElasticProcess.AddDataSet(new G4ChipsKaonPlusElasticXS());
+  fBooNEHadronElasticProcess.AddDataSet(new G4ChipsKaonZeroElasticXS());
+  fBooNEHadronElasticProcess.AddDataSet(new G4ChipsNeutronElasticXS());
+  fBooNEHadronElasticProcess.AddDataSet(new G4ChipsProtonElasticXS());
+  fBooNEHadronElasticProcess.AddDataSet(new G4ChipsPionMinusElasticXS());
+  fBooNEHadronElasticProcess.AddDataSet(new G4ChipsPionPlusElasticXS());
   fBooNEHadronElasticProcess.AddDataSet(&fBooNEHadronElasticData);
 
 }
