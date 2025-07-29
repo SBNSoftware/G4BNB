@@ -12,7 +12,7 @@ tmpargv=sys.argv[:]
 sys.argv=[tmpargv[0],'-b']
 from ROOT import TFile, TH1D, TCanvas, TPad, TLine, TLegend, gStyle, gROOT, kRed, kBlue, kMagenta, kBlack, kGreen
 sys.argv=tmpargv
-print sys.argv
+print(sys.argv)
 def getLevelOfAgreement(h1,h2):
     low1,low2,mid1,mid2,high1,high2=0,0,0,0,0,0
     for ibin in range(1,h1.GetNbinsX()+1):
@@ -72,7 +72,7 @@ hcol=[kRed, kBlue, kMagenta, kGreen+2]
 
 for ff in [args.data]+args.compare:
     if (not os.path.isfile(ff)):
-        print "%s does not exist."%ff
+        print("%s does not exist."%ff)
         sys.exit(1)
 
 setStyle()
@@ -102,7 +102,7 @@ for inu in range(1,5):
             hdata.SetTitle(hmc[ff].GetTitle())
             hdata.SetMaximum(max(hdata.GetMaximum()*1.1,hmc[ff].GetMaximum()*1.1))
             hmc[ff].SetLineColor(hcol[icol%len(hcol)])
-            hmc[ff].SetLineStyle(icol/len(hcol)+1)
+            hmc[ff].SetLineStyle(int(icol/len(hcol)+1))
             icol=icol+1
             if isec==0:
                 rat[inu][ff]=getLevelOfAgreement(hmc[ff],hdata)
@@ -131,7 +131,7 @@ for inu in range(1,5):
             hmc[ff].DrawCopy("samehist")
             hname=os.path.basename(ff)
             hname=os.path.splitext(hname)[0]
-            print ff,hname
+            print(ff,hname)
             leg.AddEntry(hmc[ff],hname,"L")
         leg.Draw()
         p2.cd()
@@ -159,4 +159,4 @@ for inu in range(1,5):
 
 for inu in range(1,5):
      for ff in args.compare:
-         print "%40s %5.2f %5.2f %5.2f"%(ff,rat[inu][ff][0],rat[inu][ff][1],rat[inu][ff][2])
+         print("%40s %5.2f %5.2f %5.2f"%(ff,rat[inu][ff][0],rat[inu][ff][1],rat[inu][ff][2]))
