@@ -1,5 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
+from tqdm import tqdm
+import signal
 import argparse
 import os.path
 import sys
@@ -28,14 +30,25 @@ args = parser.parse_args()
 
 flist=[]
 
+# Stack Overflow Q 492519
+def handler(signum, frame):
+    raise Exception("end of time")
+
 for subdir, dirs, files in os.walk(args.input):
     for f in files:
         if "hist_%s"%args.location in f:
-            flist.append(subdir+"/"+f)
+            # check if accessible first
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(10) # 10 sec timeout
+            try:
+                _ = TFile(subdir+"/"+f)
+                flist.append(subdir+"/"+f)
+            except:
+                pass
 
 hlist={}
 nFiles=0
-for f in flist:
+for f in tqdm(flist, desc="Reading files"):
     froot=TFile(f)
     isGood=False
     for k in froot.GetListOfKeys():
