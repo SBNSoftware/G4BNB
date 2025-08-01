@@ -43,11 +43,11 @@ for f in flist:
             continue
         if (k.ReadObj().GetSumOfWeights()>0):
             isGood=True
-            if k.GetName() in hlist:            
-                hlist[k.GetName()].Add(k.ReadObj())
-            else:
-                gROOT.cd()
-                hlist[k.GetName()]=k.ReadObj().Clone(k.GetName())
+        if k.GetName() in hlist:            
+            hlist[k.GetName()].Add(k.ReadObj())
+        else:
+            gROOT.cd()
+            hlist[k.GetName()]=k.ReadObj().Clone(k.GetName())
     if (isGood):
         nFiles=nFiles+1
 
