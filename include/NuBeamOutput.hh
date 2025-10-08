@@ -1,6 +1,7 @@
 #ifndef NuBeamOutput_h
 #define NuBeamOutput_h 1 
 #include <iostream>
+#include <sstream>
 #include "globals.hh"
 #include "G4Run.hh"
 #include "G4Event.hh"
