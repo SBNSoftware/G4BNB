@@ -353,7 +353,8 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   }  
   fDk2Nu->decay.necm = enuzrInGeV; // Now in GeV... 
   //fDk2Nu->decay.nimpwt = track->GetWeight();
-  
+
+  /*
   std::vector<NuBeamTrajectory *> trajs;
   G4int trackIDTmp = track->GetParentID();
   while (trackIDTmp > 0) {
@@ -363,6 +364,9 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
     if(trackIDTmp > 0) tmpTraj = GetTrajectory(trackIDTmp);  
   }
   std::reverse(trajs.begin(), trajs.end());
+  */
+  NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
+  std::vector<NuBeamTrajectory *> trajs;
 
   //add neutrino track info to ancestor since it is not in trajectory container yet
   G4String creatorProc=track->GetCreatorProcess()->GetProcessName()+":"+
@@ -371,6 +375,15 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   nutraj->AddTrajectoryPoint(track,creatorProc);
   nutraj->AddTrajectoryPoint(track,creatorProc);
   trajs.push_back(nutraj);
+
+  // We'll make our way back along the trajectory map
+  while( trajs.back()->GetParentID() > 0 ) {
+    int par_id = trajs.back()->GetParentID();
+    G4cout << "Adding trajectory with ID = " << par_id << "..." << G4endl;
+    NuBeamTrajectory par_traj = tinst.GetTrajectory(par_id);
+    trajs.push_back(&par_traj);
+  }
+  
 
   fDk2Nu->ancestor.clear();
   fDk2Nu->vint.clear();

@@ -310,6 +310,11 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
     }
     tInfo->SetCreatorModelName(GetHadronicInteraction()->GetModelName()); 
   }
+  
+  // Add this trajectory to the container
+  NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
+  NuBeamTrajectory traj = NuBeamTrajectory(&aTrack);
+  tinst.AddTrajectory( traj );
 
   return theTotalResult;
 }

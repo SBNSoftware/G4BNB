@@ -12,6 +12,7 @@
 #include "G4LogicalVolumeStore.hh"
 
 #include "NuBeamTrajectory.hh"
+#include "NuBeamTrajectoryContainer.hh"
 #include "NuBeamLocalField.hh"
 #include "NuBeamSkinDepthField.hh"
 #include "dk2nu/tree/dk2nu.h"

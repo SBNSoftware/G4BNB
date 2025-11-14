@@ -1,6 +1,7 @@
 #include "BooNEHadronElasticProcess.hh"
 #include "NuBeamTrackInformation.hh"
 #include "NuBeamTrajectory.hh"
+#include "NuBeamTrajectoryContainer.hh"
 
 BooNEHadronElasticProcess::
 BooNEHadronElasticProcess(const G4String& processName)
@@ -31,8 +32,13 @@ G4VParticleChange* BooNEHadronElasticProcess::PostStepDoIt(const G4Track& aTrack
   }
   G4int nsec=theParticleChange->GetNumberOfSecondaries();
   theParticleChange->Clear();
-  secVec.push_back(newTrack); 
-  
+  secVec.push_back(newTrack);
+
+  NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
+  NuBeamTrajectory traj = NuBeamTrajectory(&aTrack);
+  tinst.AddTrajectory( traj );
+
+  /*
   //now revert the old track info to get it stored properly in the last step
   //of ancestry tree
   theParticleChange->ProposeMomentumDirection(aTrack.GetMomentumDirection());
@@ -51,6 +57,7 @@ G4VParticleChange* BooNEHadronElasticProcess::PostStepDoIt(const G4Track& aTrack
       tInfo->SetCreatorModelName(GetHadronicInteraction()->GetModelName());   
       theParticleChange->AddSecondary(secVec[i]);
   }
+  */
   
   return theParticleChange;
 }
