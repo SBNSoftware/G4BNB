@@ -37,6 +37,7 @@ G4VParticleChange* BooNEHadronElasticProcess::PostStepDoIt(const G4Track& aTrack
   NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
   NuBeamTrajectory traj = NuBeamTrajectory(&aTrack);
   tinst.AddTrajectory( traj );
+  G4cout << "I have " << tinst.GetNTrajectories() << " trajectories now..." << G4endl;
 
   /*
   //now revert the old track info to get it stored properly in the last step

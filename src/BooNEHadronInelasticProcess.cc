@@ -306,6 +306,7 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
   NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
   NuBeamTrajectory traj = NuBeamTrajectory(&aTrack);
   tinst.AddTrajectory( traj );
+  G4cout << "I have " << tinst.GetNTrajectories() << " trajectories now..." << G4endl;
 
   return theTotalResult;
 }
