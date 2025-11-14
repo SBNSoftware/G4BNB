@@ -19,7 +19,6 @@ public:
   inline size_t GetNTrajectories() { return fTrajectories.size(); }
 
   // Add a trajectory
-  // Don't add by reference, as this shares a pointer to the PositionRecord of the NBTrajectory...
   void AddTrajectory(NuBeamTrajectory traj);
 
   // Clear in between events

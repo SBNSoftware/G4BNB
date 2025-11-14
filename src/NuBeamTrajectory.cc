@@ -21,7 +21,7 @@ G4Allocator<NuBeamTrajectory> aTrajectoryAlloc;
 
 NuBeamTrajectory::NuBeamTrajectory()
 {
-  fPositionRecord = 0;
+  //fPositionRecord = 0;
   fpParticleDefinition = 0;
   fTrackID = 0;
   fParentID = 0;
@@ -51,8 +51,9 @@ NuBeamTrajectory::NuBeamTrajectory()
 NuBeamTrajectory::NuBeamTrajectory(const G4Track* aTrack)
 {
   // static quantities
-  fPositionRecord = new NuBeamTrajectoryPointContainer();
-  fPositionRecord->push_back(new G4TrajectoryPoint(aTrack->GetPosition()));
+  //fPositionRecord = new NuBeamTrajectoryPointContainer();
+  fPositionRecord.clear();
+  fPositionRecord.push_back(new G4TrajectoryPoint(aTrack->GetPosition()));
   fpParticleDefinition = aTrack->GetDefinition();
   fTrackID = aTrack->GetTrackID();
   fParentID = aTrack->GetParentID();
@@ -67,11 +68,12 @@ NuBeamTrajectory::NuBeamTrajectory(NuBeamTrajectory & right)
   : G4VTrajectory(right)
 {
   // static quantities
-  fPositionRecord = new NuBeamTrajectoryPointContainer();
-  for(size_t i=0;i<right.fPositionRecord->size();i++) {
+  //fPositionRecord = new NuBeamTrajectoryPointContainer();
+  fPositionRecord.clear();
+  for(size_t i=0;i<right.fPositionRecord.size();i++) {
     G4TrajectoryPoint* rightPoint =
-      (G4TrajectoryPoint*)((*(right.fPositionRecord))[i]);
-    fPositionRecord->push_back(new G4TrajectoryPoint(*rightPoint));
+      (G4TrajectoryPoint*)((right.fPositionRecord)[i]);
+    fPositionRecord.push_back(new G4TrajectoryPoint(*rightPoint));
   }
   fpParticleDefinition = right.fpParticleDefinition;
   fTrackID = right.fTrackID;
@@ -85,16 +87,16 @@ NuBeamTrajectory::NuBeamTrajectory(NuBeamTrajectory & right)
 
 NuBeamTrajectory::~NuBeamTrajectory()
 {
-  if (fPositionRecord == 0) {
+  if (fPositionRecord.size() == 0) {
     return;
   }
   size_t i;
-  for(i=0;i<fPositionRecord->size();i++) {
-    delete  (*fPositionRecord)[i];
+  /*
+  for(i=0;i<fPositionRecord.size();i++) {
+    delete  fPositionRecord[i];
   }
-  fPositionRecord->clear();
-  
-  delete fPositionRecord;
+  */
+  fPositionRecord.clear();
 }
 
 void NuBeamTrajectory::AddTrajectoryPoint(const G4Track* aTrack, G4String creatorProc) 
@@ -121,12 +123,12 @@ void NuBeamTrajectory::ShowTrajectory(std::ostream& os) const
      << ":ParentID=" << fParentID << G4endl;
   os << "Particle name : " << fParticleName 
      << "  Charge : " << fPDGCharge << G4endl;
-  os << "  Current trajectory has " << fPositionRecord->size() 
+  os << "  Current trajectory has " << fPositionRecord.size() 
      << " points." << G4endl;
   
-  for( size_t i=0 ; i < fPositionRecord->size() ; i++) {
+  for( size_t i=0 ; i < fPositionRecord.size() ; i++) {
     G4TrajectoryPoint* aTrajectoryPoint =
-      (G4TrajectoryPoint*)((*fPositionRecord)[i]);
+      (G4TrajectoryPoint*)(fPositionRecord[i]);
     os << "Point[" << i << "]" 
        << " Position= " << aTrajectoryPoint->GetPosition() << G4endl;
   }
@@ -197,7 +199,7 @@ void NuBeamTrajectory::DrawTrajectory() const
 */
 void NuBeamTrajectory::AppendStep(const G4Step* aStep)
 {
-  fPositionRecord->
+  fPositionRecord.
     push_back(new
 	      G4TrajectoryPoint(aStep->GetPostStepPoint()->GetPosition() ));
 }
@@ -215,11 +217,11 @@ void NuBeamTrajectory::MergeTrajectory(G4VTrajectory* secondTrajectory)
   G4int ent = seco->GetPointEntries();
   for(G4int i=1;i<ent;i++) {
     // initial point of the second trajectory should not be merged 
-    fPositionRecord->push_back((*(seco->fPositionRecord))[i]);
+    fPositionRecord.push_back((seco->fPositionRecord)[i]);
     //    positionRecord->push_back(seco->positionRecord->removeAt(1));
   }
-  delete (*seco->fPositionRecord)[0];
-  seco->fPositionRecord->clear();
+  delete (seco->fPositionRecord)[0];
+  seco->fPositionRecord.clear();
 }
   
 NuBeamTrajectory* NuBeamTrajectory::GetParentTrajectory()

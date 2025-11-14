@@ -22,11 +22,14 @@ NuBeamTrajectory NuBeamTrajectoryContainer::GetTrajectory(int id) {
 
 void NuBeamTrajectoryContainer::AddTrajectory(NuBeamTrajectory traj) {
   int par_id = traj.GetParentID();
+  /*
   if( fTrajectories.find(par_id) != fTrajectories.end() ) {
     G4cout << "[NuBeamTrajectoryContainer]: " <<
       "WARNING: Trajectory with id = " << par_id << 
       " already in trajectory map!!! Not overriding" << G4endl;
     return;
   } else
-    fTrajectories[par_id] = traj;
+  */
+  NuBeamTrajectory ins = traj;
+  fTrajectories[par_id] = ins;
 }
