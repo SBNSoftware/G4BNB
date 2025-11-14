@@ -17,6 +17,7 @@ public:
   
   NuBeamTrajectory GetTrajectory(int id);
   inline size_t GetNTrajectories() { return fTrajectories.size(); }
+  inline bool ContainsTrajectory(int id) { return fTrajectories.count(id); }
 
   // Add a trajectory
   void AddTrajectory(NuBeamTrajectory traj);

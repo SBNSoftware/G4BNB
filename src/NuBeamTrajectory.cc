@@ -90,12 +90,13 @@ NuBeamTrajectory::~NuBeamTrajectory()
   if (fPositionRecord.size() == 0) {
     return;
   }
-  size_t i;
   /*
+  size_t i;
   for(i=0;i<fPositionRecord.size();i++) {
     delete  fPositionRecord[i];
   }
   */
+  // Destructor handles the semantics of free()
   fPositionRecord.clear();
 }
 
