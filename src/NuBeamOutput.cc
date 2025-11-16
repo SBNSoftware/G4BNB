@@ -356,11 +356,8 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
 
   NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
   std::vector<NuBeamTrajectory *> trajs;
-  G4cout << "Starting. We have a neutrino of ID = " << track->GetTrackID()
-	 << " and whose parent is " << track->GetParentID() << G4endl;
   G4int trackIDTmp = track->GetParentID();
   while (trackIDTmp > 0) {
-    G4cout << "We are looking at trackIDTmp = " << trackIDTmp << G4endl;
     // if we tracked this process, just look it up from our map
     NuBeamTrajectory *tmpTraj = GetTrajectory(trackIDTmp);    
     int par_id = tmpTraj->GetParentID();

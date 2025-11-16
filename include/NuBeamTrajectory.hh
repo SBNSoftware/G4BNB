@@ -17,8 +17,7 @@
 
 class G4Polyline;                   // Forward declaration.
 
-//typedef std::vector<G4VTrajectoryPoint*>  NuBeamTrajectoryPointContainer;
-typedef std::vector<std::shared_ptr<G4TrajectoryPoint>>  NuBeamTrajectoryPointContainer;
+typedef std::vector<G4VTrajectoryPoint*>  NuBeamTrajectoryPointContainer;
 
 class NuBeamTrajectory : public G4VTrajectory
 {
@@ -29,8 +28,8 @@ public:
   NuBeamTrajectory(NuBeamTrajectory &);
   virtual ~NuBeamTrajectory();
 
-  //inline void* operator new(size_t);
-  //inline void  operator delete(void*);
+  inline void* operator new(size_t);
+  inline void  operator delete(void*);
   inline int operator == (const NuBeamTrajectory& right) const
   {return (this==&right);} 
   
@@ -219,13 +218,12 @@ public:
 
   virtual int GetPointEntries() const { return fPositionRecord.size(); }
   virtual G4VTrajectoryPoint* GetPoint(G4int i) const 
-  { return (fPositionRecord[i]).get(); }
+  { return fPositionRecord[i]; }
 };
 
 
 extern G4Allocator<NuBeamTrajectory> aTrajectoryAlloc;
 
-/*
 inline void* NuBeamTrajectory::operator new(size_t)
 {
   void* aTrajectory;
@@ -237,7 +235,6 @@ inline void NuBeamTrajectory::operator delete(void* aTrajectory)
 {
   aTrajectoryAlloc.FreeSingle((NuBeamTrajectory*)aTrajectory);
 }
-*/
 
 #endif
 
