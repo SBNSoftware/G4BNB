@@ -46,7 +46,6 @@ NuBeamTrajectory::NuBeamTrajectory()
   fFinalStepNumber = 0;
 
   fTrajectoryPoints.clear();
-  fPositionRecord = std::vector<std::shared_ptr<G4TrajectoryPoint>>{};
 }
 
 NuBeamTrajectory::NuBeamTrajectory(const G4Track* aTrack)
@@ -54,8 +53,7 @@ NuBeamTrajectory::NuBeamTrajectory(const G4Track* aTrack)
   // static quantities
   //fPositionRecord = new NuBeamTrajectoryPointContainer();
   fPositionRecord.clear();
-  fPositionRecord.push_back( std::shared_ptr<
-			     G4TrajectoryPoint>(new G4TrajectoryPoint( aTrack->GetPosition() )) );
+  fPositionRecord.push_back(new G4TrajectoryPoint(aTrack->GetPosition()));
   fpParticleDefinition = aTrack->GetDefinition();
   fTrackID = aTrack->GetTrackID();
   fParentID = aTrack->GetParentID();
@@ -70,10 +68,12 @@ NuBeamTrajectory::NuBeamTrajectory(NuBeamTrajectory & right)
   : G4VTrajectory(right)
 {
   // static quantities
-  // Avoiding C-style casts which create dangling pointers
-  fPositionRecord.reserve(right.fPositionRecord.size());
-  for( const auto & rightPoint : right.fPositionRecord ) {
-    fPositionRecord.push_back( std::make_shared<G4TrajectoryPoint>( *rightPoint ) );
+  //fPositionRecord = new NuBeamTrajectoryPointContainer();
+  fPositionRecord.clear();
+  for(size_t i=0;i<right.fPositionRecord.size();i++) {
+    G4TrajectoryPoint* rightPoint =
+      (G4TrajectoryPoint*)((right.fPositionRecord)[i]);
+    fPositionRecord.push_back(new G4TrajectoryPoint(*rightPoint));
   }
   fpParticleDefinition = right.fpParticleDefinition;
   fTrackID = right.fTrackID;
@@ -87,17 +87,17 @@ NuBeamTrajectory::NuBeamTrajectory(NuBeamTrajectory & right)
 
 NuBeamTrajectory::~NuBeamTrajectory()
 {
-  // Destructor handles the semantics of free()
-  fPositionRecord.clear();
-  /*
   if (fPositionRecord.size() == 0) {
     return;
   }
+  /*
   size_t i;
   for(i=0;i<fPositionRecord.size();i++) {
     delete  fPositionRecord[i];
   }
   */
+  // Destructor handles the semantics of free()
+  fPositionRecord.clear();
 }
 
 void NuBeamTrajectory::AddTrajectoryPoint(const G4Track* aTrack, G4String creatorProc) 
@@ -128,14 +128,10 @@ void NuBeamTrajectory::ShowTrajectory(std::ostream& os) const
      << " points." << G4endl;
   
   for( size_t i=0 ; i < fPositionRecord.size() ; i++) {
-    /*
     G4TrajectoryPoint* aTrajectoryPoint =
-    (G4TrajectoryPoint*)(fPositionRecord[i]);
+      (G4TrajectoryPoint*)(fPositionRecord[i]);
     os << "Point[" << i << "]" 
        << " Position= " << aTrajectoryPoint->GetPosition() << G4endl;
-    */
-    os << "Point[" << i << "]" 
-       << " Position= " << (fPositionRecord[i])->GetPosition() << G4endl;
   }
 }
 /*
@@ -205,9 +201,8 @@ void NuBeamTrajectory::DrawTrajectory() const
 void NuBeamTrajectory::AppendStep(const G4Step* aStep)
 {
   fPositionRecord.
-    push_back(std::shared_ptr<
-	      G4TrajectoryPoint>( new
-				   G4TrajectoryPoint(aStep->GetPostStepPoint()->GetPosition()) ));
+    push_back(new
+	      G4TrajectoryPoint(aStep->GetPostStepPoint()->GetPosition() ));
 }
 
 G4ParticleDefinition* NuBeamTrajectory::GetParticleDefinition()
@@ -223,15 +218,10 @@ void NuBeamTrajectory::MergeTrajectory(G4VTrajectory* secondTrajectory)
   G4int ent = seco->GetPointEntries();
   for(G4int i=1;i<ent;i++) {
     // initial point of the second trajectory should not be merged 
-    /*
-    fPositionRecord.push_back( std::make_shared<
-			       G4TrajectoryPoint>((seco->fPositionRecord)[i]) );
+    fPositionRecord.push_back((seco->fPositionRecord)[i]);
     //    positionRecord->push_back(seco->positionRecord->removeAt(1));
-    */
-    if(seco->fPositionRecord[i])
-      fPositionRecord.push_back(std::make_shared<G4TrajectoryPoint>(*seco->fPositionRecord[i]));
   }
-  //delete (seco->fPositionRecord)[0]; //not needed now
+  delete (seco->fPositionRecord)[0];
   seco->fPositionRecord.clear();
 }
   
