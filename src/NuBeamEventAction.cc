@@ -30,13 +30,16 @@ NuBeamEventAction::~NuBeamEventAction()
 
 void NuBeamEventAction::BeginOfEventAction(const G4Event* anEvent)
 {
-  // Clear any saved tracks...
-  NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
-  if( tinst.GetNTrajectories() > 0 ) tinst.Clear();
   // Initiate record-keeping for this event.
   if (fRecords != NULL) fRecords->RecordBeginOfEvent(anEvent);
 
   G4int evtNb = anEvent->GetEventID();
+  NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
+  if( evtNb != tinst.GetEvent() ) { // Clear any saved tracks...
+    tinst.Clear();
+    tinst.SetEvent(evtNb);
+  }
+    
   //printing survey
   if (evtNb > 100)  fPrintModulo = 100;
   if (evtNb > 1000)  fPrintModulo = 1000;

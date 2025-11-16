@@ -53,6 +53,40 @@ void NuBeamSteppingAction::UserSteppingAction(const G4Step* s)
       particleType==G4Geantino::GeantinoDefinition());
 
   if (!interestingTrack) theTrack->SetTrackStatus(fStopAndKill);
+
+  // Add this trajectory to the container
+  NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
+  if( tinst.ContainsTrajectory(theTrack->GetTrackID()) ) {
+    // Reference means updates are always in place
+    NuBeamTrajectory & traj = tinst.GetTrajectory(theTrack->GetTrackID());
+    // Update info from the track now..
+    traj.SetFinalEnergy(theTrack->GetTotalEnergy());
+    traj.SetFinalMomentum(theTrack->GetMomentum());
+    traj.SetFinalPosition(theTrack->GetPosition());
+    traj.SetFinalPolarization(theTrack->GetPolarization());
+    traj.SetFinalTime(theTrack->GetGlobalTime());
+    traj.SetFinalStepNumber(theTrack->GetCurrentStepNumber());
+    G4String creatorProc = (theTrack->GetCreatorProcess() != 0) ?
+      theTrack->GetCreatorProcess()->GetProcessName() : "Primary";
+    traj.AddTrajectoryPoint( theTrack, creatorProc );
+    traj.AppendStep(s);
+    //tinst.AddTrajectory( traj ); // update in place
+  } else { // need to add this into the container
+    NuBeamTrajectory rtraj(theTrack);
+    std::unique_ptr<NuBeamTrajectory> traj = std::make_unique<NuBeamTrajectory>(rtraj);
+    // Technically, this is incorrect. It adds the post-1st step as the "initial" info.
+    traj->SetInitialEnergy(theTrack->GetTotalEnergy());
+    traj->SetInitialMomentum(theTrack->GetMomentum());
+    traj->SetInitialPosition(theTrack->GetPosition());
+    traj->SetInitialPolarization(theTrack->GetPolarization());
+    traj->SetInitialTime(theTrack->GetGlobalTime());
+    traj->SetInitialStepNumber(theTrack->GetCurrentStepNumber());
+    G4String creatorProc = (theTrack->GetCreatorProcess() != 0) ?
+      theTrack->GetCreatorProcess()->GetProcessName() : "Primary";
+    traj->AddTrajectoryPoint( theTrack, creatorProc );
+    traj->AppendStep(s);
+    tinst.AddTrajectory( std::move(traj) );
+  }
   
   if(fPerfectFocusingForPositives || fPerfectFocusingForNegatives) {
     if ( s->GetPreStepPoint()->GetPhysicalVolume()->GetName() == "HDSK"
