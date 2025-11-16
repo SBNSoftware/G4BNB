@@ -35,8 +35,7 @@ void NuBeamEventAction::BeginOfEventAction(const G4Event* anEvent)
 
   G4int evtNb = anEvent->GetEventID();
   NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
-  if( evtNb != tinst.GetEvent() ) { // Clear any saved tracks...
-    tinst.Clear();
+  if( evtNb != tinst.GetEvent() ) {
     tinst.SetEvent(evtNb);
   }
     
@@ -52,6 +51,8 @@ void NuBeamEventAction::BeginOfEventAction(const G4Event* anEvent)
 void NuBeamEventAction::EndOfEventAction(const G4Event* anEvent)
 {
   // Terminate record-keeping for this event.
+  NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
+  tinst.Clear();
   if (fRecords != NULL)
     fRecords->RecordEndOfEvent(anEvent);	
 }
