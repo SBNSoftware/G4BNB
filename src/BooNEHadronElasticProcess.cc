@@ -34,14 +34,6 @@ G4VParticleChange* BooNEHadronElasticProcess::PostStepDoIt(const G4Track& aTrack
   theParticleChange->Clear();
   secVec.push_back(newTrack);
 
-  NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
-  int nprev = tinst.GetNTrajectories();
-  NuBeamTrajectory traj = NuBeamTrajectory(&aTrack);
-  tinst.AddTrajectory( traj );
-  int naft = tinst.GetNTrajectories();
-  if(nprev != naft)
-    G4cout << "Adding trajectory with ID " << aTrack.GetTrackID() << "..." << G4endl;
-
   /*
   //now revert the old track info to get it stored properly in the last step
   //of ancestry tree
