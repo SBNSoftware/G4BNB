@@ -97,6 +97,7 @@ NuBeamTrajectory::~NuBeamTrajectory()
     delete  fPositionRecord[i];
   }
   fPositionRecord.clear();
+  fTrajectoryPoints.clear();
 }
 
 void NuBeamTrajectory::AddTrajectoryPoint(const G4Track* aTrack, G4String creatorProc) 
