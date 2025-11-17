@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <iostream>
+#include <algorithm>
 
 #include "NuBeamOutput.hh"
 #include "NuBeamOutputMessenger.hh"
@@ -49,6 +50,8 @@
 #include "TLorentzVector.h"
 #include "TRandom3.h"
 #include "TH1D.h"
+
+using namespace trajectory; // for access to trajPoint_t members
 
 NuBeamOutput::NuBeamOutput() :
   fMessenger(0)
@@ -356,10 +359,18 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
 
   NuBeamTrajectoryContainer & tinst = NuBeamTrajectoryContainer::Instance();
   std::vector<NuBeamTrajectory *> trajs;
+  // Ask the TrackingAction which steps it would like to save for tracking.
+  // Then load up only those steps into the output
+  std::vector< std::pair<G4int, std::vector<G4int>> > saved_steps; 
   G4int trackIDTmp = track->GetParentID();
   while (trackIDTmp > 0) {
     // if we tracked this process, just look it up from our map
     NuBeamTrajectory *tmpTraj = GetTrajectory(trackIDTmp);    
+    std::vector<G4int> track_saved_steps;
+    for( trajPoint_t st: tmpTraj->GetTrajectoryPoints() ) {
+      track_saved_steps.emplace_back(st.fStepNumber+1);
+    };
+    saved_steps.emplace_back( std::pair<G4int, std::vector<G4int>>( trackIDTmp, track_saved_steps ) );
     int par_id = tmpTraj->GetParentID();
     if(tinst.ContainsTrajectory(trackIDTmp)) {
       NuBeamTrajectory & tr = tinst.GetTrajectory(trackIDTmp);
@@ -383,6 +394,8 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   nutraj->AddTrajectoryPoint(track,creatorProc);
   trajs.push_back(nutraj);
   
+  std::vector<G4int> nusteps = {0, 1}; // we added both neutrino steps
+  saved_steps.emplace_back( std::pair<G4int, std::vector<G4int>>( track->GetTrackID(), nusteps ) );
 
   fDk2Nu->ancestor.clear();
   fDk2Nu->vint.clear();
@@ -390,12 +403,23 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   // Now fill ancestry info. 
   // Set a global to track the previous weight.. if not 1, the weight should be that (1 pBe interaction that sets weight)
   G4double impwt = 1.0;
-  for (auto t: trajs) {
+  for (auto t: trajs) { 
     fDk2Nu->vint.push_back(t->GetTrackID());
-    std::vector<NuBeamTrajectory::trajPoint_t> trajPoints=t->GetTrajectoryPoints();
+    std::vector<trajPoint_t> trajPoints=t->GetTrajectoryPoints();
     //hadron elastic scatterings are added as additional points in trajectory
-    for (size_t iTP=0; iTP<trajPoints.size();iTP+=2) {
+    //for (size_t iTP=0; iTP<trajPoints.size();iTP+=2) {
+    std::vector< std::pair<G4int, std::vector<G4int>> >::iterator it_svs = saved_steps.begin();
+    while( it_svs != saved_steps.end() ) {
+      if( (*it_svs).first == t->GetTrackID() ) break;
+      ++it_svs;
+    }
+    std::vector<G4int> steps = (*it_svs).second;
+    for( size_t iTP = 0; iTP < trajPoints.size()-1; iTP+=2 ) {
+      // did we want to set this step?
+      if( std::find(steps.begin(), steps.end(),
+		    trajPoints[iTP].fStepNumber) == steps.end() ) continue;
       bsim::Ancestor a;
+      // also load the next step, for stopping momentum
       a.pdg     = t->GetPDGEncoding();
       a.startx  = trajPoints[iTP].fPosition[0]/CLHEP::cm;
       a.starty  = trajPoints[iTP].fPosition[1]/CLHEP::cm;
