@@ -41,6 +41,8 @@ void NuBeamEventAction::BeginOfEventAction(const G4Event* anEvent)
   if (evtNb%fPrintModulo == 0) {
     G4cout << "\n---> Begin of event: " << evtNb << G4endl;
   }
+  G4cout << "\n---> Begin of event: " << evtNb << G4endl;
+  fRecords->ResetTrackIdToQEMap();
 }
 
 void NuBeamEventAction::EndOfEventAction(const G4Event* anEvent)

@@ -51,8 +51,15 @@ private:
   static const G4int kNPtBins=100;
   static const G4int kNProtonMomentumBins=100;
 
+  // FRAN QE - QE status of the last interaction
+  bool fLastInteractionWasQE;
+
 public:
   bool fIsQE;
+
+  // FRAN QE - get is QE
+  bool QuasiElasticStatus() {return fLastInteractionWasQE;}
+
   //we don't conserve momentum in this model at all, so set levels very high
   const std::pair< G4double, G4double > GetFatalEnergyCheckLevels() const {return std::pair<G4double, G4double>(100.*CLHEP::perCent, 1000. * CLHEP::GeV);};
 

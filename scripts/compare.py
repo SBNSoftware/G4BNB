@@ -101,8 +101,8 @@ for inu in range(1,5):
             hmc[ff].Scale(500./500.)
             hdata.SetTitle(hmc[ff].GetTitle())
             hdata.SetMaximum(max(hdata.GetMaximum()*1.1,hmc[ff].GetMaximum()*1.1))
-            hmc[ff].SetLineColor(hcol[icol%len(hcol)])
-            hmc[ff].SetLineStyle(icol/len(hcol)+1)
+            hmc[ff].SetLineColor(hcol[ int(icol%len(hcol)) ])
+            hmc[ff].SetLineStyle( int(icol/len(hcol))+1)
             icol=icol+1
             if isec==0:
                 rat[inu][ff]=getLevelOfAgreement(hmc[ff],hdata)

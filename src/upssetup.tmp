@@ -1,0 +1,9 @@
+Active ups products:
+boost             v1_82_0         -f Linux64bit+3.10-2.17 -q e26:prof        -z /cvmfs/larsoft.opensciencegrid.org/products
+cmake             v3_9_5          -f Linux64bit+3.10-2.17                    -z /cvmfs/larsoft.opensciencegrid.org/products
+dk2nudata         v01_10_01f      -f Linux64bit+3.10-2.17 -q e26:prof        -z /cvmfs/larsoft.opensciencegrid.org/products
+gcc               v12_1_0         -f Linux64bit+3.10-2.17                    -z /cvmfs/larsoft.opensciencegrid.org/products
+geant4            v4_10_4_p02d    -f Linux64bit+3.10-2.17 -q e19:prof        -z /cvmfs/nova.opensciencegrid.org/externals
+ifdhc_config      v2_8_0          -f NULL                                    -z /cvmfs/fermilab.opensciencegrid.org/products/common/db
+ifdhc             v2_8_0          -f Linux64bit+3.10-2.17                    -z /cvmfs/fermilab.opensciencegrid.org/products/common/db
+jobsub_client     v_lite          -f NULL                                    -z /cvmfs/fermilab.opensciencegrid.org/products/common/db

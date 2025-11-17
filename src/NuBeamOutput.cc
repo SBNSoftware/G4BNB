@@ -374,10 +374,38 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
 
   fDk2Nu->ancestor.clear();
   fDk2Nu->vint.clear();
+  // Fran - QE flag
+  fDk2Nu->vdbl.clear();
 
-  // Now fill ancestry info. 
+  // Now fill ancestry info.
+  std::cout << " ===> Neutrino found: pdg " << track->GetDefinition()->GetPDGEncoding()
+      << std::endl;
   for (auto t: trajs) {
     fDk2Nu->vint.push_back(t->GetTrackID());
+    
+    // Fran - QE flag
+    // Check if parent led to a QE interaction
+    int motherID = t->GetParentID();
+    int qemult = 0;
+    if( motherID>0 ) {
+      qemult = fTrackIdToQEMultiplicitiesMap[motherID];
+    }
+    else {
+      qemult = 0; // primary
+    }
+
+    fDk2Nu->vdbl.push_back( qemult );
+    
+    std::cout << "    => traj pdg " << t->GetPDGEncoding() 
+        << " trackID " << t->GetTrackID() 
+        << " parentID " << t->GetParentID() 
+        << " momentum " << std::hypot(t->GetInitialMomentum().x(), t->GetInitialMomentum().y(), t->GetInitialMomentum().z())/CLHEP::GeV
+        << " creator proc " << t->GetCreatorProcessName()
+        << " qemult: " << qemult
+        << " qepBe: " << fTrackIdToQEpBEModelMap[t->GetTrackID()]
+        << " stop momentum " << std::hypot(t->GetFinalMomentum().x(), t->GetFinalMomentum().y(), t->GetFinalMomentum().z())/CLHEP::GeV
+        << std::endl;
+
     std::vector<NuBeamTrajectory::trajPoint_t> trajPoints=t->GetTrajectoryPoints();
     //hadron elastic scatterings are added as additional points in trajectory
     for (size_t iTP=0; iTP<trajPoints.size();iTP+=2) {

@@ -81,6 +81,36 @@ public:
 
   void SaveProductionNtuple(bool val) {fSaveProductionNtuple = val;};
 
+  //Fran - QE flag
+  void ResetTrackIdToQEMap() {
+    fTrackIdToEndProcMap.clear();
+    fTrackIdToEndProcMappBe.clear();
+    fTrackIdToStartProcMap.clear();
+    fTrackIdToQEMultiplicitiesMap.clear();
+    fTrackIdToQEpBEModelMap.clear();
+    std::cout<<"=> ResetTrackIdToQEMap() called."<<std::endl;
+  }
+  void SetTrackIdToEndProcMap(G4int trackID, int mode) {
+    fTrackIdToEndProcMap[trackID] = mode;
+    //std::cout<<"=> SetTrackIdToQEMap() called. TrackID: "<<trackID<<" intMode: " << mode <<std::endl;
+  }
+  void SetTrackIdToStartProcMap(G4int trackID, int mode) {
+    fTrackIdToStartProcMap[trackID] = mode;
+    //std::cout<<"=> SetTrackIdToEndProcessMap() called. TrackID: "<<trackID<<" intMode: " << mode <<std::endl;
+  }
+  void SetTrackIdToEndProcMappBe(G4int trackID, int mode) {
+    fTrackIdToEndProcMappBe[trackID] = mode;
+    //std::cout<<"=> SetTrackIdToEndProcessMappBe() called. TrackID: "<<trackID<<" intMode: " << mode <<std::endl;
+  }
+  void SetTrackIdToQEMultiplicitiesMap(G4int trackID, bool isQE) {
+    fTrackIdToQEMultiplicitiesMap[trackID] = isQE;
+    //std::cout<<"=> SetTrackIdToQEMultiplicitiesMap() called. TrackID: "<<trackID<<" isQE: " << isQE <<std::endl;
+  }
+  void SetTrackIdToQEpBEModelMap(G4int trackID, bool isQE) {
+    fTrackIdToQEpBEModelMap[trackID] = isQE;
+    //std::cout<<"=> SetTrackIdToQEpBEModelMap() called. TrackID: "<<trackID<<" isQE: " << isQE <<std::endl;
+  }
+
   void SetNuEnergyThr(G4double val){ fNuEnergyThr = val;};
   G4double GetNuEnergyThr() const { return fNuEnergyThr;};
   void SetPionMomentumThr(G4double val){ fPionMomentumThr = val;};
@@ -143,6 +173,13 @@ private:
 
   //aux ntuples
   std::vector<boundaryNtp_t> fBoundaryNtp;
+
+  // Fran - QE flag
+  std::map<int, int> fTrackIdToEndProcMap;
+  std::map<int, int> fTrackIdToEndProcMappBe;
+  std::map<int, int> fTrackIdToStartProcMap;
+  std::map<int, bool> fTrackIdToQEMultiplicitiesMap;
+  std::map<int, bool> fTrackIdToQEpBEModelMap;
 };
 
 #endif

@@ -44,6 +44,12 @@ BooNEpBeInteraction::BooNEpBeInteraction()
   const NuBeamPrimaryGeneratorAction* nbpga=dynamic_cast<const NuBeamPrimaryGeneratorAction*> (G4RunManager::GetRunManager()->GetUserPrimaryGeneratorAction());
   fPrimaryEnergy = nbpga->GetParticleGun()->GetParticleEnergy();  
   FillOtherCrossSections(fPrimaryEnergy);
+
+  // -- FRAN QE
+  const NuBeamRunManager *pRunManager = reinterpret_cast<const NuBeamRunManager*>(G4RunManager::GetRunManager());
+  fRecords = pRunManager->GetRecordPtr();
+
+
 }
 
 BooNEpBeInteraction::~BooNEpBeInteraction()
@@ -1549,12 +1555,19 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
   G4double inelasticxsec=boonexsec->GetInelasticCrossSection(dynPart,aNucl.GetZ_asInt(),aNucl.GetA_asInt());
   delete dynPart;
   G4double qefrac=qexsec/inelasticxsec;
+
   
   if (G4UniformRand()<qefrac) {
     fIsQE=true;
+    fLastInteractionWasQE=true;
     G4HadFinalState* part=fQuasiElasticModel.ApplyYourself(aTrack,aNucl);
+    std::cout << "   ---> BooNEpBeInteraction: Quasi-elastic interaction selected" << std::endl;
     return part;
   }
+  fLastInteractionWasQE=false;
+  // else this is inelastic interaction
+  std::cout << "   ---> BooNEpBeInteraction: Inelastic interaction selected" << std::endl;
+  
   // if not QE, then generate the secondories from inelastic pBe
   // get number of secondaries, according to average multiplicties
   // and Poisson distributions, and
@@ -1740,6 +1753,7 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
   }
   
   theParticleChange.SetStatusChange( stopAndKill );
+
   
   const NuBeamRunManager *pRunManager=
     reinterpret_cast<const NuBeamRunManager*>(G4RunManager::GetRunManager());

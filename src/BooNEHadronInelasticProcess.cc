@@ -308,7 +308,25 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
       tInfo=new NuBeamTrackInformation();
       secTrack->SetUserInformation(tInfo);
     }
-    tInfo->SetCreatorModelName(GetHadronicInteraction()->GetModelName()); 
+    tInfo->SetCreatorModelName(GetHadronicInteraction()->GetModelName());
+
+    // FRAN QE
+    if (fInteraction->GetModelName() == "BooNEpBeInteraction") {
+      std::cout << "    --> HadronInelasticProcess QE:" 
+                << fBooNEpBeModel->QuasiElasticStatus() << " for track E " << secTrack->GetKineticEnergy() << " PDG: " << secTrack->GetParticleDefinition()->GetPDGEncoding() << std::endl;
+
+      tInfo->SetCreatorWasQE( fBooNEpBeModel->QuasiElasticStatus() );
+      // also update the main track info
+      NuBeamTrackInformation* mainInfo=dynamic_cast<NuBeamTrackInformation*>(aTrack.GetUserInformation());
+      if (mainInfo) {
+        mainInfo->SetCreatorWasQE( fBooNEpBeModel->QuasiElasticStatus() );
+      }
+
+    }
+    else {
+      tInfo->SetCreatorWasQE( false );
+    }
+ 
   }
 
   return theTotalResult;
@@ -320,6 +338,18 @@ G4HadronicInteraction* BooNEHadronInelasticProcess::ChooseHadronicInteraction(G4
   //otherwise picks the LE proton model or HE proton model
   //for any other particle uses standard G4 ChooseHadronicInteraction
   G4HadronicInteraction* hadInt;
+
+  if (hadProj.GetDefinition()==G4Proton::Proton() && anElement==G4Element::GetElement("Be")){
+
+    std::cout << "BooNEHadronInelasticProcess::ChooseHadronicInteraction for "
+       << hadProj.GetDefinition()->GetParticleName()
+       << " E=" << hadProj.GetKineticEnergy()
+       << " on Z=" << aNucl.GetZ_asInt() << " A=" << aNucl.GetA_asInt()
+       << " Element=" << anElement->GetName()
+       << " MinE=" << fBooNEpBeModel->GetMinEnergy() << " MaxE=" << fBooNEpBeModel->GetMaxEnergy()
+        << std::endl;
+  }
+
   if (hadProj.GetDefinition()==G4Proton::Proton() && 
       hadProj.GetKineticEnergy()>fBooNEpBeModel->GetMinEnergy() && 
       hadProj.GetKineticEnergy()<fBooNEpBeModel->GetMaxEnergy() &&

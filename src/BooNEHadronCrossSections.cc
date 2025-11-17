@@ -203,7 +203,6 @@ BooNEHadronCrossSections::GetQuasiElasticCrossSection(const G4DynamicParticle* a
 
   // go through the various cases:
   if(aParticle->GetDefinition()      == G4Proton::Proton()){
-
     // Proton quasi-elastic cross section is based on Regge parametrization
     G4double A, B, n, C, D;
 
@@ -222,11 +221,9 @@ BooNEHadronCrossSections::GetQuasiElasticCrossSection(const G4DynamicParticle* a
       D = pAlQelParameters[4];
     }
     theCrossSection =  Regge(theMomentum, A, B, n, C, D);
-
   }
 
   else if(aParticle->GetDefinition() == G4Neutron::Neutron()){
-
     // Neutron quasi-elastic cross section is based on Regge parametrization
     G4double A, B, n, C, D;
 
@@ -248,7 +245,6 @@ BooNEHadronCrossSections::GetQuasiElasticCrossSection(const G4DynamicParticle* a
   }
 
   else if(aParticle->GetDefinition() == G4PionPlus::PionPlus()){
-
     // piplus quasi-elastic invovles a Breit Wigner and a Regge parametrization with threshold
     G4double N, M0, Gamma, p0, s, A, B, C, n, D;
     

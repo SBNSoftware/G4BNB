@@ -99,14 +99,19 @@ BooNEHadronQuasiElasticModel::ApplyYourself(const  G4HadProjectile  &aHadron,
   //   Even if you tried, you don't have the direction of the incident particle
   //   in the lab frame anyways!
 
-   
+  // !!!! Removed by FRAN  
   // Define the secondaries necessary for the final state
   // first set final state of hadron, now back to MeV 
   // Kinetic energy
-  theParticleChange.SetEnergyChange( (hadronOutMomentum.e() - hadrMass) * CLHEP::GeV);
+  // ///theParticleChange.SetEnergyChange( (hadronOutMomentum.e() - hadrMass) * CLHEP::GeV);
 
   // Direction
-  theParticleChange.SetMomentumChange(hadronOutMomentum.vect().unit());
+  // //// theParticleChange.SetMomentumChange(hadronOutMomentum.vect().unit());
+
+  // !!! FRAN Add secondary for QE-scattered hadron
+  G4DynamicParticle * outHadron = 
+    new G4DynamicParticle(theHadron->GetDefinition(), hadronOutMomentum.vect() * CLHEP::GeV);
+  theParticleChange.AddSecondary(outHadron);
   
   // decide if we scattered off at proton or a neutron
   // we'll use a simple scaling based on Z protons and (A-Z) neutrons;
@@ -137,6 +142,9 @@ BooNEHadronQuasiElasticModel::ApplyYourself(const  G4HadProjectile  &aHadron,
     // G4DynamicParticle * outNucleus =   new G4DynamicParticle(outNucleusDef, outNucleusMomentum);
 
   }
+
+  // !!! FRAN Status set to stop the incident hadron
+  theParticleChange.SetStatusChange( stopAndKill );
 
 
   return &theParticleChange;
