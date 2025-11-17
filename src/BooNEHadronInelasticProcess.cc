@@ -300,6 +300,23 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
       secTrack->SetUserInformation(tInfo);
     }
     tInfo->SetCreatorModelName(GetHadronicInteraction()->GetModelName()); 
+
+    // Propagate QE info for secondaries created in BooNEpBeInteraction to the track info
+    if (fInteraction->GetModelName() == "BooNEpBeInteraction") {
+      std::cout << "    --> HadronInelasticProcess QE:" 
+                << fBooNEpBeModel->QuasiElasticStatus() << " for track E " << secTrack->GetKineticEnergy() << " PDG: " << secTrack->GetParticleDefinition()->GetPDGEncoding() << std::endl;
+
+      tInfo->SetCreatorWasQE( fBooNEpBeModel->QuasiElasticStatus() );
+      // also update the main track info
+      NuBeamTrackInformation* mainInfo=dynamic_cast<NuBeamTrackInformation*>(aTrack.GetUserInformation());
+      if (mainInfo) {
+        mainInfo->SetCreatorWasQE( fBooNEpBeModel->QuasiElasticStatus() );
+      }
+
+    }
+    else {
+      tInfo->SetCreatorWasQE( false );
+    }
   }
 
   return theTotalResult;

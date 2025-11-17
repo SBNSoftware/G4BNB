@@ -1553,6 +1553,7 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
   if (G4UniformRand()<qefrac) {
     fIsQE=true;
     G4HadFinalState* part=fQuasiElasticModel.ApplyYourself(aTrack,aNucl);
+    fLastInteractionWasQE = true;
     return part;
   }
   // if not QE, then generate the secondories from inelastic pBe
@@ -1562,6 +1563,8 @@ BooNEpBeInteraction::ApplyYourself( const G4HadProjectile &aTrack,
   // Note: no need to rotate secondaries' momentum in lab frame
   // using incident proton beam direction. This is now handled 
   // internally by G4
+
+  fLastInteractionWasQE = false;
 
   G4long nProton = 0;
   G4long nNeutron = 0;

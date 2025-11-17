@@ -75,9 +75,45 @@ void NuBeamTrackingAction::PreUserTrackingAction(const G4Track* aTrack)
       // dynamic initial trajectory information
       if (aTrack->GetTrackID()==1) 
 	creatorProc="Primary";
-      else
+      else{
 	creatorProc=aTrack->GetCreatorProcess()->GetProcessName()+":"+
 	  ((NuBeamTrackInformation*)aTrack->GetUserInformation())->GetCreatorModelName();
+
+        // Add additional suffix for BooNEHadronInelastic processes
+        // For QE BooNE interactions, add :QEBooNE
+        // For production (either BooNEpBeInteraction or default G4 hadronic models),
+        // add :<multiplicities> (e.g. 2P1N3PiM0PiP0KP0KM0Oth)
+        if ( creatorProc.find("BooNEHadronInelastic")!=G4String::npos ){
+
+          // string with particle multiplicites
+          G4String multStr = "";
+          NuBeamTrackInformation* tInfo = (NuBeamTrackInformation*)aTrack->GetUserInformation();
+          if(tInfo){
+            multStr += std::to_string( tInfo->GetCreatorNProtons() ) + "P";
+            multStr += std::to_string( tInfo->GetCreatorNNeutrons() ) + "N";
+            multStr += std::to_string( tInfo->GetCreatorNPiPlus() ) + "PiM";
+            multStr += std::to_string( tInfo->GetCreatorNPiMinus() ) + "PiP";
+            multStr += std::to_string( tInfo->GetCreatorNKPlus() ) + "KP";
+            multStr += std::to_string( tInfo->GetCreatorNKMinus() ) + "KM";
+            multStr += std::to_string( tInfo->GetCreatorNOthers() ) + "Oth";
+          }
+
+          // if BooNEpBeInteraction
+          if( creatorProc.find("BooNEpBeInteraction")!=G4String::npos ) {
+            G4bool wasQE = ((NuBeamTrackInformation*)aTrack->GetUserInformation())->GetCreatorWasQE();
+            if (wasQE) {
+              creatorProc += ":QEBooNE";
+            }
+            else{
+              creatorProc += ":" + multStr;
+            }
+          }
+          else{
+            creatorProc += ":" + multStr;
+          }
+        }
+
+      }
 
       trajectory->SetCreatorProcessName(creatorProc);
       trajectory->SetInitialEnergy( aTrack->GetTotalEnergy() );
@@ -119,6 +155,68 @@ void NuBeamTrackingAction::PostUserTrackingAction(const G4Track* aTrack)
     trajectory->SetFinalStepNumber( aTrack->GetCurrentStepNumber() );
     trajectory->AddTrajectoryPoint(aTrack, "Final");
   }
+
+  // Get the secondaries produced in this track's processes
+  G4TrackVector* secondaries = fpTrackingManager->GimmeSecondaries();
+  size_t nSeco = secondaries->size();
+  
+  // Check if the interaction was inelastic hadronic
+  // and add multiplicities to the track information
+  bool is_ine = false;   
+  for(size_t i=0;i<nSeco;i++){
+    G4Track* secondary=(*secondaries)[i];
+    int tpdg = secondary->GetParticleDefinition()->GetPDGEncoding();
+    if( abs(tpdg)<100 )continue;
+    G4String tproc = secondary->GetCreatorProcess()->GetProcessName();
+    if(tproc == "BooNEHadronInelastic"){is_ine = true;}
+  }
+  
+  // If inelastic, check secondary particles in the final state
+  if( is_ine ){
+
+    // Do the counting of final state particles
+    int nProton = 0;
+    int nNeutron = 0;
+    int nPiMinus = 0;
+    int nPiPlus = 0;
+    int nKPlus = 0;
+    int nKMinus = 0;
+    int nOthers = 0;
+    for(size_t i=0; i < nSeco; i++){	
+      G4Track* secondary=(*secondaries)[i];
+      int tpropdg = secondary->GetParticleDefinition()->GetPDGEncoding();
+      if( abs(tpropdg)<100 || abs(tpropdg)>1000000 ) continue;
+      else if( tpropdg == 2212 ) nProton++;
+      else if( tpropdg == 2112 ) nNeutron++;
+      else if( tpropdg == 211 ) nPiPlus++;
+      else if( tpropdg == -211 ) nPiMinus++;
+      else if( tpropdg == 321 ) nKPlus++;
+      else if( tpropdg == -321 ) nKMinus++;
+      else nOthers++;
+    }
+
+    // Now set the multiplicities in the track information of all hadronic secondaries
+    for(size_t i=0; i < nSeco; i++){	
+      G4Track* secondary=(*secondaries)[i];
+
+      int tpropdg = secondary->GetParticleDefinition()->GetPDGEncoding();
+      if( abs(tpropdg)<100 || abs(tpropdg)>1000000 ) continue;
+
+      NuBeamTrackInformation* mainInfo=dynamic_cast<NuBeamTrackInformation*>(secondary->GetUserInformation());
+      if (mainInfo) {
+        mainInfo->SetCreatorNProtons(nProton);
+        mainInfo->SetCreatorNNeutrons(nNeutron);
+        mainInfo->SetCreatorNPiPlus(nPiPlus);
+        mainInfo->SetCreatorNPiMinus(nPiMinus);
+        mainInfo->SetCreatorNKPlus(nKPlus);
+        mainInfo->SetCreatorNKMinus(nKMinus);
+        mainInfo->SetCreatorNOthers(nOthers);
+      }
+    }
+
+  }
+
+
   
   return;
 
