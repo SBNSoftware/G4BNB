@@ -17,6 +17,8 @@
 
 #include "NuBeamTrackingAction.hh"
 
+using namespace trajectory;
+
 G4Allocator<NuBeamTrajectory> aTrajectoryAlloc;
 
 NuBeamTrajectory::NuBeamTrajectory()

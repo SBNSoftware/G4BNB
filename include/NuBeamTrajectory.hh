@@ -19,6 +19,21 @@ class G4Polyline;                   // Forward declaration.
 
 typedef std::vector<G4VTrajectoryPoint*>  NuBeamTrajectoryPointContainer;
 
+namespace trajectory {
+  struct trajPoint_t {
+    G4String      fCreatorProcessName;
+    G4double      fEnergy;
+    G4ThreeVector fMomentum;
+    G4ThreeVector fPosition;
+    G4ThreeVector fPolarization;
+    G4double      fTime;
+    G4int         fStepNumber;
+    G4int         fMaterialNumber;
+    G4String      fMaterialName;
+    G4String      fVolumeName;
+  };
+}
+
 class NuBeamTrajectory : public G4VTrajectory
 {
 public:
@@ -147,23 +162,8 @@ public:
   inline void SetFinalStepNumber(const G4int aValue)
   {fFinalStepNumber = aValue;}
 
-
-  struct trajPoint_t {
-    G4String      fCreatorProcessName;
-    G4double      fEnergy;
-    G4ThreeVector fMomentum;
-    G4ThreeVector fPosition;
-    G4ThreeVector fPolarization;
-    G4double      fTime;
-    G4int         fStepNumber;
-    G4int         fMaterialNumber;
-    G4String      fMaterialName;
-    G4String      fVolumeName;
-  };
-
-
   void AddTrajectoryPoint(const G4Track* aTrack, G4String creatorProc);
-  std::vector<trajPoint_t> GetTrajectoryPoints(){return fTrajectoryPoints;};
+  std::vector<trajectory::trajPoint_t> GetTrajectoryPoints(){return fTrajectoryPoints;};
 
   // method to retrieve the parent trajectory for any trajectory
   NuBeamTrajectory* GetParentTrajectory();
@@ -181,7 +181,7 @@ private:
   
   NuBeamTrajectoryPointContainer fPositionRecord;
 
-  std::vector<trajPoint_t> fTrajectoryPoints;
+  std::vector<trajectory::trajPoint_t> fTrajectoryPoints;
 
   // static track information
   G4ParticleDefinition* fpParticleDefinition;
