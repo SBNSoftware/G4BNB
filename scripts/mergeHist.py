@@ -51,17 +51,17 @@ for f in flist:
     if (isGood):
         nFiles=nFiles+1
 
-print "Added %i good files."%nFiles
+print("Added %i good files."%nFiles)
 outfname="hist_"+args.location+".root"
 if args.output:
     outfname=args.output
 
-print "Writing histograms in %s"%outfname
+print("Writing histograms in %s"%outfname)
 fout=TFile(outfname,"RECREATE")
 keylist=hlist.keys()
-keylist.sort()
+sorted(keylist)
 for k in keylist:
-    print k
+    print(k)
     hlist[k].Scale(1./float(nFiles))
     hlist[k].Write()
 fout.Close()
