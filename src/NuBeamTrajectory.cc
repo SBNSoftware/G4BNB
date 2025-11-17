@@ -92,14 +92,10 @@ NuBeamTrajectory::~NuBeamTrajectory()
   if (fPositionRecord.size() == 0) {
     return;
   }
-  /*
   size_t i;
   for(i=0;i<fPositionRecord.size();i++) {
     delete  fPositionRecord[i];
   }
-  */
-  // Destructor handles the semantics of free()
-  fPositionRecord.clear();
 }
 
 void NuBeamTrajectory::AddTrajectoryPoint(const G4Track* aTrack, G4String creatorProc) 
