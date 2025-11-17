@@ -103,10 +103,14 @@ BooNEHadronQuasiElasticModel::ApplyYourself(const  G4HadProjectile  &aHadron,
   // Define the secondaries necessary for the final state
   // first set final state of hadron, now back to MeV 
   // Kinetic energy
-  theParticleChange.SetEnergyChange( (hadronOutMomentum.e() - hadrMass) * CLHEP::GeV);
-
+  // theParticleChange.SetEnergyChange( (hadronOutMomentum.e() - hadrMass) * CLHEP::GeV);
   // Direction
-  theParticleChange.SetMomentumChange(hadronOutMomentum.vect().unit());
+  // theParticleChange.SetMomentumChange(hadronOutMomentum.vect().unit());
+  
+  // ^^^^^^^ Deprecated, create a new dynamic particle instead ^^^^^^^
+  G4DynamicParticle * outHadron = 
+    new G4DynamicParticle(theHadron->GetDefinition(), hadronOutMomentum.vect() * CLHEP::GeV);
+  theParticleChange.AddSecondary(outHadron);
   
   // decide if we scattered off at proton or a neutron
   // we'll use a simple scaling based on Z protons and (A-Z) neutrons;
@@ -138,6 +142,8 @@ BooNEHadronQuasiElasticModel::ApplyYourself(const  G4HadProjectile  &aHadron,
 
   }
 
+  // Stop and kill the incident particle, since it has been added as secondary
+  theParticleChange.SetStatusChange( stopAndKill );
 
   return &theParticleChange;
 
