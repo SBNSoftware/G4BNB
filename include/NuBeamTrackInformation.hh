@@ -34,11 +34,15 @@ public:
   void SetCreatorModelName(G4String val) {fCreatorModelName=val;};
   G4String GetCreatorModelName() {return fCreatorModelName;};
 
+  void SetAuxStoppingMomentum(G4ThreeVector val) {fAuxStoppingMomentum=val;};
+  G4ThreeVector GetAuxStoppingMomentum() {return fAuxStoppingMomentum;};
+  
 private:
   G4String fCreatorModelName;
   G4int fDecayCodeDk2nu; // filled in BooNEStepping, at decay detection. 
   G4int fIsBiassed;
-
+  G4ThreeVector fAuxStoppingMomentum;
+  
 public:
   inline G4int GetDecayCodeForDk2nu() const {return fDecayCodeDk2nu;}
   inline void  SetDecayCodeForDk2nu(G4int d)  {fDecayCodeDk2nu = d;}

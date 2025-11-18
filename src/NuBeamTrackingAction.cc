@@ -90,7 +90,7 @@ void NuBeamTrackingAction::PreUserTrackingAction(const G4Track* aTrack)
       const G4Material *aMat = aTrack->GetVolume()->GetLogicalVolume()->GetMaterial();
       trajectory->SetInitialMaterialNumber(aMat->GetIndex()); // Too early... Must be stored in 
       trajectory->SetInitialMaterialName(aMat->GetName()); // Too early... Must be stored in 
-      trajectory->AddTrajectoryPoint(aTrack, creatorProc);
+      trajectory->AddTrajectoryPoint(aTrack, creatorProc, G4ThreeVector(-9999,-9999,-9999));
     }
   } else {
     fpTrackingManager->SetStoreTrajectory(false);
@@ -109,6 +109,9 @@ void NuBeamTrackingAction::PostUserTrackingAction(const G4Track* aTrack)
       fpTrackingManager->GetStoreTrajectory()) {
     NuBeamTrajectory* trajectory = 
       (NuBeamTrajectory*)fpTrackingManager->GimmeTrajectory();
+
+    NuBeamTrackInformation * aTrackInfo = 
+    dynamic_cast<NuBeamTrackInformation *>(aTrack->GetUserInformation());
     
     // dynamic final track information
     trajectory->SetFinalEnergy( aTrack->GetTotalEnergy() );
@@ -117,7 +120,7 @@ void NuBeamTrackingAction::PostUserTrackingAction(const G4Track* aTrack)
     trajectory->SetFinalPolarization(aTrack->GetPolarization());
     trajectory->SetFinalTime( aTrack->GetGlobalTime() );
     trajectory->SetFinalStepNumber( aTrack->GetCurrentStepNumber() );
-    trajectory->AddTrajectoryPoint(aTrack, "Final");
+    trajectory->AddTrajectoryPoint(aTrack, "Final",aTrackInfo->GetAuxStoppingMomentum());
   }
   
   return;
