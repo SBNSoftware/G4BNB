@@ -87,7 +87,7 @@ void NuBeamTrackingAction::PreUserTrackingAction(const G4Track* aTrack)
 
           // string with particle multiplicites
           G4String multStr = "";
-          NuBeamTrackInformation* tInfo = (NuBeamTrackInformation*)aTrack->GetUserInformation();
+          NuBeamTrackInformation* tInfo = dynamic_cast<NuBeamTrackInformation*>(aTrack->GetUserInformation());
           if(tInfo){
             multStr += std::to_string( tInfo->GetCreatorNProtons() ) + "P";
             multStr += std::to_string( tInfo->GetCreatorNNeutrons() ) + "N";
