@@ -97,12 +97,17 @@ NuBeamTrajectory::~NuBeamTrajectory()
   delete fPositionRecord;
 }
 
-void NuBeamTrajectory::AddTrajectoryPoint(const G4Track* aTrack, G4String creatorProc) 
+void NuBeamTrajectory::AddTrajectoryPoint(const G4Track* aTrack, G4String creatorProc,G4ThreeVector auxFinalTrackMom) 
 {
   trajPoint_t newPoint;
   newPoint.fCreatorProcessName=creatorProc;
   newPoint.fEnergy=aTrack->GetTotalEnergy();
-  newPoint.fMomentum=aTrack->GetMomentum();
+  if(creatorProc=="Final" && auxFinalTrackMom.z()>1.e-12){
+    newPoint.fMomentum=auxFinalTrackMom;
+  }
+  else{
+    newPoint.fMomentum=aTrack->GetMomentum();
+  }
   newPoint.fPosition=aTrack->GetPosition();
   newPoint.fPolarization=aTrack->GetPolarization();
   newPoint.fTime=aTrack->GetGlobalTime();
