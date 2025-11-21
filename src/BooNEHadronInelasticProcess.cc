@@ -310,6 +310,15 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
     }
   }
 
+  NuBeamTrackInformation* tInfoParent =
+    dynamic_cast<NuBeamTrackInformation*>(aTrack.GetUserInformation());
+  if (!tInfoParent) {
+    tInfoParent = new NuBeamTrackInformation();
+    // aTrack is const, so cast away const to attach info
+    const_cast<G4Track&>(aTrack).SetUserInformation(tInfoParent);
+  }
+  tInfoParent->SetAuxStoppingMomentum(aTrack.GetMomentum());
+  
   return theTotalResult;
 }
 

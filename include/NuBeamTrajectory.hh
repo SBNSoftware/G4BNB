@@ -162,7 +162,7 @@ public:
   };
 
 
-  void AddTrajectoryPoint(const G4Track* aTrack, G4String creatorProc);
+  void AddTrajectoryPoint(const G4Track* aTrack, G4String creatorProc,G4ThreeVector auxFinalTrackMom);
   std::vector<trajPoint_t> GetTrajectoryPoints(){return fTrajectoryPoints;};
 
   // method to retrieve the parent trajectory for any trajectory

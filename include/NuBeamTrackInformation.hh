@@ -38,6 +38,9 @@ public:
   void SetCreatorWasQE(G4bool val) {fCreatorWasQE=val;};
   G4bool GetCreatorWasQE() const {return fCreatorWasQE;};
 
+  void SetAuxStoppingMomentum(G4ThreeVector val) {fAuxStoppingMomentum=val;};
+  G4ThreeVector GetAuxStoppingMomentum() {return fAuxStoppingMomentum;};
+  
 private:
   G4String fCreatorModelName;
   G4int fDecayCodeDk2nu; // filled in BooNEStepping, at decay detection. 
@@ -55,6 +58,8 @@ private:
   G4int fCreatorNKMinus;
   G4int fCreatorNOthers;
 
+  G4ThreeVector fAuxStoppingMomentum;
+  
 public:
   inline G4int GetDecayCodeForDk2nu() const {return fDecayCodeDk2nu;}
   inline void  SetDecayCodeForDk2nu(G4int d)  {fDecayCodeDk2nu = d;}

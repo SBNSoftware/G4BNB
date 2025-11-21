@@ -368,8 +368,8 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   G4String creatorProc=track->GetCreatorProcess()->GetProcessName()+":"+
     ((NuBeamTrackInformation*)track->GetUserInformation())->GetCreatorModelName();
   NuBeamTrajectory* nutraj=new NuBeamTrajectory(track);
-  nutraj->AddTrajectoryPoint(track,creatorProc);
-  nutraj->AddTrajectoryPoint(track,creatorProc);
+  nutraj->AddTrajectoryPoint(track,creatorProc,G4ThreeVector(-9999,-9999,-9999));
+  nutraj->AddTrajectoryPoint(track,creatorProc,G4ThreeVector(-9999,-9999,-9999));
   trajs.push_back(nutraj);
 
   fDk2Nu->ancestor.clear();
