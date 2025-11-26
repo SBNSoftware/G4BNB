@@ -300,6 +300,14 @@ BooNEHadronInelasticProcess::PostStepDoIt(const G4Track& aTrack, const G4Step&)
       secTrack->SetUserInformation(tInfo);
     }
     tInfo->SetCreatorModelName(GetHadronicInteraction()->GetModelName()); 
+
+    // Propagate QE info for secondaries created in BooNEpBeInteraction to the track info
+    if (fInteraction->GetModelName() == "BooNEpBeInteraction") {
+      tInfo->SetCreatorWasQE( fBooNEpBeModel->QuasiElasticStatus() );
+    }
+    else {
+      tInfo->SetCreatorWasQE( false );
+    }
   }
 
   NuBeamTrackInformation* tInfoParent =
