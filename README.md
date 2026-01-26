@@ -10,8 +10,8 @@ The old code has been cleaned up, partly rewritten and rearranged to get it up t
 There were two repositories within the main Redmine project page, one used during the upgrade (booster-neutrino-beamline) and one with the final working version where code has been further restructured (booster-neutrino-beamline-g4bnb).
 The latter one has been migrated here to GitHub.
 
-The current working version of G4BNB v1.0 uses GEANT4.10.4, and can be cloned using the geant4_10_4 branch.
-A branch is also available that uses GEANT4.10.6, named g4bnb-geant4-10-6-build. The master branch can be built with GEANT4.10.1.
+The current production version of G4BNB v1.1.1 uses GEANT4.10.6, and can be cloned using the v1.1.1 tag.
+A branch is also available that uses GEANT4.10.4, named geant4_10_4. The master branch can be built with GEANT4.10.1.
 Relevant set up scripts for each version are provided in the branch.
 
 ## Downloading the G4BNB code
