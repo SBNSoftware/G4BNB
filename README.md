@@ -10,8 +10,8 @@ The old code has been cleaned up, partly rewritten and rearranged to get it up t
 There were two repositories within the main Redmine project page, one used during the upgrade (booster-neutrino-beamline) and one with the final working version where code has been further restructured (booster-neutrino-beamline-g4bnb).
 The latter one has been migrated here to GitHub.
 
-The current working version of G4BNB v1.0 uses GEANT4.10.4, and can be cloned using the geant4_10_4 branch.
-A branch is also available that uses GEANT4.10.6, named g4bnb-geant4-10-6-build. The master branch can be built with GEANT4.10.1.
+The current production version of G4BNB v1.1.1 uses GEANT4.10.6, and can be cloned using the v1.1.1 tag.
+A development branch using GEANT4.10.6 is avaiable, named g4bnb-geant4-10-6-build. A branch is also available that uses GEANT4.10.4, named geant4_10_4. The master branch can be built with GEANT4.10.1.
 Relevant set up scripts for each version are provided in the branch.
 
 ## Downloading the G4BNB code
@@ -22,40 +22,42 @@ Authenticated clone (i.e., allows to modify the software and upload your modific
 
 ```
 git clone https://github.com/SBNSoftware/G4BNB.git
-``` 
+```
 
-To check out a preexisting branch from the repository (recommended to run the current working version or development versions), you can clone the repository as above, then do:
+To check out a fixed release of G4BNB (which is recommended for large production runs or to run the current version) into a directory with the name of the tag, you can do:
 ```
-$ cd <repository directory name>
-$ git checkout origin/<branch name>
-$ git checkout -b <branch name>
-```
-This will create a local branch from the remote branch. The current working version of G4BNB is on the branch "geant4_10_4". 
-
-To check out a fixed release of G4BNB (which is recommended for large production runs) into a directory with the name of the tag, you can do:
-```
-$ git clone https://github.com/SBNSoftware/G4BNB.git <tag_name>
-$ cd <tag_name>
+$ git clone https://github.com/SBNSoftware/G4BNB.git <directory name>
 $ git checkout <tag_name>
+$ git checkout -b <branch_name>
 ```
 You can see a list of available tags by doing:
 ```
 git tag
 ```
+Current production tag is v1.1.1, used in SBND Fall/Gen2 production.
+
+
+To check out a preexisting branch from the repository (recommended to run development versions), you can clone the repository as above, then do:
+```
+$ cd <repository directory name>
+$ git checkout origin/<branch name>
+$ git checkout -b <branch name>
+```
+This will create a local branch from the remote branch. 
 
 ## Building G4BNB at Fermilab
 
 If building G4BNB on the Fermilab gpvms, an SL7 container will be needed. An apptainer can be activated by:
 ```
-sh /exp/$(id -ng)/data/users/vito/podman/start_SL7dev.sh
+sh /exp/$(id -ng)/data/users/vito/podman/start_SL7dev_jsl.sh
 ```
 This apptainer does not support jobsub.
 
 To setup the correct software dependancies, use the setup scripts provided in the `/scripts` directory.
 The setup scripts have the relevant GEANT4 version number in their name.
-Assuming you are using the current `v1.0` working version (branch `geant4_10_4`), setup by running:
+Assuming you are using the current v1.1.1 production version, setup by running:
 ```
-source scripts/setup_g4104.sh
+source scripts/setup_g4106.sh
 ```
 
 cd into build directory and run:
@@ -67,7 +69,7 @@ make install
 
 ## Submit grid jobs
 
-It is recommended to submit jobs directly from the AL9 gpvm node without using an SL7 container.
+If submitting jobs from the SL7 container, ensure the container has jobsub_lite support. If the container does not, it is possible to submit directly from the AL9 nodes without sourcing the setup scripts once the repository has been built. 
 The `submitBeam.py` script sets up a singularity image of SL7 on the grid.
 To submit grid jobs use submitBeam.py script:
 
@@ -108,7 +110,7 @@ optional arguments:
 
 Example to submit 100 jobs with 50000 POT each using `production.in` input file as template (note that `submitBeam.py` overrides POT, horn current and geometry):
 ```
-bin/v4_10_4_p02d/submitBeam.py -n 100 -b bin/v4_10_4_p02d/ -i input/production.in -g geometry/BooNE_50m.gdml  -p 50000
+bin/v4_10_6_p01g/submitBeam.py -n 100 -b bin/v4_10_6_p01g/ -i input/production.in -g geometry/BooNE_50m.gdml  -p 50000
 ```
 
 Different production scripts have been provided to enable decay at rest (DAR) for only muons and both muons and pions. These are called `production_muDAR.in` and `production_muDAR_piDAR.in` respectively.
@@ -138,10 +140,10 @@ Options:
 
 Example to produce histograms from previously generated jobs:
 ```
-./bin/v4_10_4_p02d/beamHist --input /pnfs/uboone/scratch/users/${USER}/beammc/production_BooNE_50m_I174000A/\*/\*dk2nu.root --detector-radius 200 --detector-position 73.78 0 11000 --thread 4 --output hist_sbnd.root
+./bin/v4_10_6_p01g/beamHist --input /pnfs/uboone/scratch/users/${USER}/beammc/production_BooNE_50m_I174000A/\*/\*dk2nu.root --detector-radius 200 --detector-position 73.78 0 11000 --thread 8 --output hist_sbnd.root
 ```
 
-This might take a while if analyzing many jobs. submitBeam.py actually runs the beamHist command on the grid and produces histogram files for sbnd, uboone, miniboone, icarus locations:
+This might take a while if analyzing many jobs. submitBeam.py runs the beamHist command on the grid and produces histogram files for sbnd, uboone, miniboone, icarus locations:
 
  |                    |        x/cm   |         y/cm   |            z/cm | r/cm |
  | ---|---|---|---|---|
@@ -170,7 +172,7 @@ optional arguments:
 
 For example to merge histograms from previously ran jobs:
 ```
-bin/v4_10_4_p02d/mergeHist.py -i /pnfs/uboone/scratch/users/${USER}/beammc/production_BooNE_50m_I174000A/  -l miniboone
+bin/v4_10_6_p01g/mergeHist.py -i /pnfs/uboone/scratch/users/${USER}/beammc/production_BooNE_50m_I174000A/  -l miniboone
 ```
 This creates hist_miniboone.root. Merge script scales histograms dividing out the number of files so normalization is always the same, assuming the files each have the same POT in them.
 
@@ -185,7 +187,7 @@ compare.py: error: argument -d/--data is required
 
 Example to compare to the original MiniBooNE flux histogram:
 ```
-bin/v4_10_4_p02d/compare.py -d validation/april07_baseline_rgen610.6_fixrnd_20171212.root -c hist_miniboone.root -o miniboone_plot.pdf
+bin/v4_10_6_p01g/compare.py -d validation/april07_baseline_rgen610.6_fixrnd_20171212.root -c hist_miniboone.root -o miniboone_plot.pdf
 ```
 
 Multiple histogram files can be listed after -c option and those will all be compared to file under `-d` option.
