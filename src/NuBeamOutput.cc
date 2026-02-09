@@ -654,6 +654,9 @@ G4int NuBeamOutput::GetDecayCode(const G4Track* nuTrack)
 		       nuTrack->GetMomentum().z(),
 		       nuTrack->GetTotalEnergy());
 
+  G4ProcessType creator_ptype = (nuTrack->GetCreatorProcess())->GetProcessType();
+  G4String creator_name = (nuTrack->GetCreatorProcess())->GetProcessName();
+
   switch (parentTraj->GetPDGEncoding()) {
   case 130:
   case 311:
@@ -702,11 +705,15 @@ G4int NuBeamOutput::GetDecayCode(const G4Track* nuTrack)
       return bsim::dkp_unknown;
     }
     break;
-  case 13: 
-    return bsim::dkp_mup_nusep;
+  // For muons, check if the creator process was decay or capture
+  case 13:
+    if( creator_ptype == fDecay ) { return bsim::dkp_mum_nusep; }
+    else if( creator_name.find("Capture") != std::string::npos ) { return bsim::dk_mum_capture; }
+    else { return bsim::dkp_unknown; }
     break;
   case -13: 
-    return bsim::dkp_mum_nusep;
+    if( creator_ptype == fDecay ) { return bsim::dkp_mup_nusep; }
+    else { return bsim::dkp_unknown; }
     break;
   case 211:
     switch (nuTrack->GetParticleDefinition()->GetPDGEncoding()) {
