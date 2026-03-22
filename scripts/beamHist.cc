@@ -32,10 +32,10 @@ struct histpackage_t
   double RDet;
   int rndSeed;
   bool countPOT;
-  std::vector<TH3F*> hxye;
-  std::vector<std::array<TH1F*, 4>> hFlux;
-  std::vector<std::array<std::array<TH1F*, 4>, 4>> hparent;
-  std::vector<std::array<std::array<TH1F*, 5>, 4>> hsec;
+  std::vector<std::unique_ptr<TH3F>> hxye;
+  std::vector<std::array<std::unique_ptr<TH1F>, 4>> hFlux;
+  std::vector<std::array<std::array<std::unique_ptr<TH1F>, 4>, 4>> hparent;
+  std::vector<std::array<std::array<std::unique_ptr<TH1F>, 5>, 4>> hsec;
   double POT;
 };
 
@@ -164,14 +164,14 @@ int main(int ac, char* av[])
   for (int i=1;i<nthread;i++) {
 
     for (int p=0;p<=nPRISM;p++) {
-      hp[0]->hxye[p]->Add(hp[i]->hxye[p]);
+      hp[0]->hxye[p]->Add((hp[i]->hxye[p]).get());
       for (int inu=0;inu<4;inu++) {
-	hp[0]->hFlux[p][inu]->Add(hp[i]->hFlux[p][inu]);
+	hp[0]->hFlux[p][inu]->Add((hp[i]->hFlux[p][inu]).get());
 	for (int ipar=0;ipar<4;ipar++) {
-	  hp[0]->hparent[p][inu][ipar]->Add(hp[i]->hparent[p][inu][ipar]);
+	  hp[0]->hparent[p][inu][ipar]->Add((hp[i]->hparent[p][inu][ipar]).get());
 	}
 	for (int isec=0;isec<5;isec++) {
-	  hp[0]->hsec[p][inu][isec]->Add(hp[i]->hsec[p][inu][isec]);
+	  hp[0]->hsec[p][inu][isec]->Add((hp[i]->hsec[p][inu][isec]).get());
 	} 
       }
     } // add in all PRISM bins
@@ -289,45 +289,53 @@ void* FillHist(void* hpvoid)
   TThread::Lock();
   for (int p=0;p<=nPRISM;p++) {
     std::string psuffix = (p > 0) ? std::string(Form("_prism%02i", p)) : "";
-    hp->hxye.push_back(new TH3F(Form("h_xyE%s%s",suffix.c_str(),psuffix.c_str()),
-				Form("Neutrino vertices at r=(%f,%f,%f)cm;x (cm);y (cm);E (GeV)",
-				     hp->detpos[0],hp->detpos[1],hp->detpos[2]),
-				100,-hp->RDet,hp->RDet,
-				100,-hp->RDet,hp->RDet,
-				200,0,10));
+    std::unique_ptr<TH3F> pxye = std::make_unique<TH3F>(Form("h_xyE%s%s",suffix.c_str(),psuffix.c_str()),
+							Form("Neutrino vertices at r=(%f,%f,%f)cm;x (cm);y (cm);E (GeV)",
+							     hp->detpos[0],hp->detpos[1],hp->detpos[2]),
+							100,-hp->RDet,hp->RDet,
+							100,-hp->RDet,hp->RDet,
+							200,0,10);
+    pxye->SetDirectory(0);
+    hp->hxye.push_back(std::move(pxye));
     
-    std::array<TH1F*, 4> hpFlux;
+    std::array<std::unique_ptr<TH1F>, 4> hpFlux;
     for (int i=0;i<4;i++) {
-      hpFlux[i] = new TH1F(Form("h50%i%s%s",i+1,suffix.c_str(),psuffix.c_str()),
-			   Form("%s (all);Energy %s (GeV);#phi(%s)/50MeV/POT",
-				nultx[i].c_str(),nultx[i].c_str(),nultx[i].c_str()),
-			   200,0,10);
-      hpFlux[i]->Sumw2();
+      std::unique_ptr<TH1F> pflux = std::make_unique<TH1F>(Form("h50%i%s%s",i+1,suffix.c_str(),psuffix.c_str()),
+							   Form("%s (all);Energy %s (GeV);#phi(%s)/50MeV/POT",
+								nultx[i].c_str(),nultx[i].c_str(),nultx[i].c_str()),
+							   200,0,10);
+      pflux->Sumw2();
+      pflux->SetDirectory(0);
+      hpFlux[i] = std::move(pflux);
     }
-    hp->hFlux.push_back(hpFlux);
+    hp->hFlux.push_back(std::move(hpFlux));
     
-    std::array<std::array<TH1F*, 4>, 4> hpparent;
-    std::array<std::array<TH1F*, 5>, 4> hpsec;
+    std::array<std::array<std::unique_ptr<TH1F>, 4>, 4> hpparent;
+    std::array<std::array<std::unique_ptr<TH1F>, 5>, 4> hpsec;
     for (int inu=0;inu<4;inu++) {
       for (int ipar=0;ipar<4;ipar++) {
-	hpparent[inu][ipar] = new TH1F(Form("h5%i%i%s%s",ipar+1,inu+1,suffix.c_str(),psuffix.c_str()),
-				       Form("...->%s->%s;Energy %s (GeV);#phi(%s)/50MeV/POT",
-					    pltx[ipar].c_str(),nultx[inu].c_str(),
-					    nultx[inu].c_str(),nultx[inu].c_str()),
-				       200,0,10);
-	hpparent[inu][ipar]->Sumw2();
+	std::unique_ptr<TH1F> pparent = std::make_unique<TH1F>(Form("h5%i%i%s%s",ipar+1,inu+1,suffix.c_str(),psuffix.c_str()),
+							       Form("...->%s->%s;Energy %s (GeV);#phi(%s)/50MeV/POT",
+								    pltx[ipar].c_str(),nultx[inu].c_str(),
+								    nultx[inu].c_str(),nultx[inu].c_str()),
+							       200,0,10);
+	pparent->Sumw2();
+	pparent->SetDirectory(0);
+	hpparent[inu][ipar] = std::move(pparent);
       }
       for (int isec=0;isec<5;isec++) {
-	hpsec[inu][isec] = new TH1F(Form("h7%i%i%s%s",isec+1,inu+1,suffix.c_str(),psuffix.c_str()),
-				    Form("%s->%s;Energy %s (GeV);#phi(%s)/50MeV/POT",
-					 secltx[isec].c_str(),nultx[inu].c_str(),
-					 nultx[inu].c_str(),nultx[inu].c_str()),
-				    200,0,10);
-	hpsec[inu][isec]->Sumw2();
+	std::unique_ptr<TH1F> ppsec = std::make_unique<TH1F>(Form("h7%i%i%s%s",isec+1,inu+1,suffix.c_str(),psuffix.c_str()),
+							     Form("%s->%s;Energy %s (GeV);#phi(%s)/50MeV/POT",
+								  secltx[isec].c_str(),nultx[inu].c_str(),
+								  nultx[inu].c_str(),nultx[inu].c_str()),
+							     200,0,10);
+	ppsec->Sumw2();
+	ppsec->SetDirectory(0);
+	hpsec[inu][isec] = std::move(ppsec);
       }
     }
-    hp->hparent.push_back(hpparent);
-    hp->hsec.push_back(hpsec);
+    hp->hparent.push_back(std::move(hpparent));
+    hp->hsec.push_back(std::move(hpsec));
   } // for all PRISM bins, initialise
 
   // Note this calculation assumes all z = detpos[2].
