@@ -152,6 +152,7 @@ int main(int ac, char* av[])
       hp[i]->countPOT=true;
     else 
       hp[i]->countPOT=false;
+    std::cout << "Making thread " << i << std::endl;
     t[i]=new TThread(Form("Thread_%i",i),FillHist, (void*) hp[i]);
     t[i]->Run();
   }
@@ -286,6 +287,7 @@ void* FillHist(void* hpvoid)
   std::string suffix="";
   if (hp->rndSeed>0) 
     suffix=Form("_%i",hp->rndSeed);
+  std::cout << "About to lock thread " << hp->rndSeed << std::endl;
   TThread::Lock();
   for (int p=0;p<=nPRISM;p++) {
     std::string psuffix = (p > 0) ? std::string(Form("_prism%02i", p)) : "";
@@ -340,11 +342,22 @@ void* FillHist(void* hpvoid)
 
   // Note this calculation assumes all z = detpos[2].
   // For more accurate PRISM fluxes you'll need a 3D profile.
+  /*
+   * At any rate, you need the area of SBND within each off-axis bin.
+   * This has been modelled after the CDF of the angular distribution
+   * of 1e8 points uniformly distributed on SBND's front face. The CDF of
+   * this distribution (binned in 0.001 deg from 0 to 1.766) was then fit
+   * using Mathematica. See DocDB [to be inserted]
+   */
   TThread::UnLock();
-  ientry=0;
+  //ientry=0;
   cout<<"Thread "<<hp->rndSeed<<" starting to process "<<dk2nuTree->GetNtrees()<<" files."<<endl;
-  while (dk2nuTree->GetEntry(ientry++)) {
-    //    if (ientry%100000==0) cout<<"Thread "<<hp->rndSeed<<" on entry "<<ientry<<endl;
+  //while (dk2nuTree->GetEntry(jentry++)) {
+  for(int jentry = 0; jentry < dk2nuTree->GetEntries(); jentry++){
+    TThread::Lock();
+    dk2nuTree->GetEntry(jentry);
+    TThread::UnLock();
+    //    if (jentry%100000==0) cout<<"Thread "<<hp->rndSeed<<" on entry "<<jentry<<endl;
     for (int ipdg=0;ipdg<4;ipdg++) {
       if (dk2nu->decay.ntype!=pdgcode[ipdg]) continue;
       
@@ -369,10 +382,14 @@ void* FillHist(void* hpvoid)
 	double ang = xyz.Theta() * TMath::RadToDeg();
 
 	for (int p=0;p<=nPRISM;p++){
-	  int pdx = 0;
+	  int pdx = -1;
 
-	  while( hp->prism_bins[pdx+1] < ang && pdx < nPRISM+1 ) { pdx++; }
-	  pdx += 1; // account for offset by 1
+	  // thread safe...
+	  if( ang >= hp->prism_bins.front() && ang < hp->prism_bins.back() ) {
+	    auto it = std::upper_bound(hp->prism_bins.begin(), hp->prism_bins.end(), ang);
+	    pdx = std::distance(hp->prism_bins.begin(), it); // this bakes in the offset
+	  }
+	  //pdx += 1; // account for offset by 1
 	  
 	  if( p > 0 && p != pdx ) { continue; }
 	  hp->hxye[p]->Fill(xx,yy,enu,totwgh);
@@ -402,7 +419,7 @@ void* FillHist(void* hpvoid)
     } // loop over nu pdg
   } // loop over dk2nu entries
  
-  cout<<"Thread "<<hp->rndSeed<<" processed "<<ientry<<" entries. POT = "<<hp->POT<<endl;
+  cout<<"Thread "<<hp->rndSeed<<" processed "<<dk2nuTree->GetEntries()<<" entries. POT = "<<hp->POT<<endl;
 
   return NULL;
 }
