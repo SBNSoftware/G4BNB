@@ -1,7 +1,9 @@
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <glob.h>
 #include <thread>
+#include <array>
 
 #include "TFile.h"
 #include "TH1F.h"
@@ -26,13 +28,14 @@ struct histpackage_t
   std::vector<string> filelist;
   int NREDECAY;
   std::vector<double> detpos; 
+  std::vector<double> prism_bins;
   double RDet;
   int rndSeed;
   bool countPOT;
   TH3F* hxye;
-  TH1F* hFlux[4];
-  TH1F* hparent[4][4];
-  TH1F* hsec[4][5]; 
+  std::array<TH1F*, 4> hFlux; //[4];
+  std::array<std::array<TH1F*, 4>, 4> hparent; //[4][4];
+  std::array<std::array<TH1F*, 5>, 4> hsec; //[4][5]; 
   double POT;
 };
 
@@ -42,6 +45,7 @@ void* FillHist(void* hp);
 int main(int ac, char* av[])
 {
   vector<double> detpos;
+  vector<double> prism_bins;
   detpos.resize(3);
   double RDet;
   string searchpath;
@@ -58,7 +62,8 @@ int main(int ac, char* av[])
     ("nredecays",value<int>(&NREDECAY)->default_value(1.),"Number of redecays.")
     ("detector-radius",value<double>(&RDet)->default_value(0.),"Detector radius (in cm).")
     ("detector-position",value<vector<double> >(&detpos)->multitoken(),"Detector position (in cm).")
-    ("thread",value<int>(&nthread)->default_value(1),"Number of threads to run. (max set to 8)");
+    ("thread",value<int>(&nthread)->default_value(1),"Number of threads to run. (max set to 8)")
+    ("prism-bins",value<vector<double>>(&prism_bins)->multitoken(),"PRISM bin edges (in degrees)");
     
   variables_map vm;
   
@@ -79,6 +84,11 @@ int main(int ac, char* av[])
       detpos[0]=0;
       detpos[1]=0;
       detpos[2]=47000.;
+    }
+    if (!vm.count("prism-bins")) {
+      // Set no PRISM
+      prism_bins.push_back(0.0);
+      prism_bins.push_back(180.0);
     }
   } catch (error& e) {
     cerr << e.what()<<endl<<endl;
@@ -109,6 +119,12 @@ int main(int ac, char* av[])
        <<detpos[1]<<", "
        <<detpos[2]<<") cm and smearing over RDet="<<RDet<<" cm"<<endl;
   cout <<"Redecaying "<<NREDECAY<<" times."<<endl;
+  const int nPRISM = prism_bins.size()-1;
+  std::ostringstream asts;
+  asts << "Using N = " << nPRISM << " PRISM bins with edges: [";
+  for( const double & pr : prism_bins ) { asts << pr << ", "; }
+  asts.seekp(-2, asts.cur); asts << "] ";
+  std::cout << asts.str() << std::endl;
 
   cout<<"Starting "<<nthread<<" threads"<<endl;
   TThread::Initialize();
