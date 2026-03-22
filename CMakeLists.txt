@@ -5,6 +5,10 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} $ENV{G4LIB} $ENV{ROOTSYS}/etc/cmake)
 
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif()
+
 project(NuBeam)
 
 #----------------------------------------------------------------------------

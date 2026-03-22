@@ -44,6 +44,8 @@ void* FillHist(void* hp);
 
 int main(int ac, char* av[])
 {
+  TH1::AddDirectory(false);
+
   vector<double> detpos;
   vector<double> prism_bins;
   detpos.resize(3);
@@ -94,7 +96,7 @@ int main(int ac, char* av[])
     cerr << opt <<endl;
     return 1;
   }
-  if (nthread>8) nthread=8;
+  if (nthread>8){ nthread=8; }
 
   glob_t glob_result;
   cout<<"Searching "<<searchpath<<endl;
@@ -159,6 +161,7 @@ int main(int ac, char* av[])
   TThread::Ps();
   for (int i=0;i<nthread;i++) {
     t[i]->Join();
+    std::cout << "Ending thread " << i << std::endl;
   }
 
   //add histograms from all threads, for all PRISM bins
@@ -214,8 +217,9 @@ int main(int ac, char* av[])
       double plow = prism_bins[p-1]; double phigh = prism_bins[p];
       dirtitle = std::string(Form("Flux in PRISM bin [%2.1f, %2.1f]", plow, phigh));
     }
-    TDirectoryFile * dirfile = new TDirectoryFile(dirname.c_str(), dirtitle.c_str());
-    fout.Add(dirfile);
+    //TDirectoryFile * dirfile = new TDirectoryFile(dirname.c_str(), dirtitle.c_str());
+    //fout.Add(dirfile);
+    TDirectory * dirfile = fout.mkdir(dirname.c_str(), dirtitle.c_str());
     dirfile->cd();
     hp[0]->hxye[p]->Write();
     for (int inu=0;inu<4;inu++) {
@@ -225,7 +229,8 @@ int main(int ac, char* av[])
       }
     }  
     for (int inu=0;inu<4;inu++) {
-      hp[0]->hFlux[p][inu]->Write(Form("h70%i%s",inu+1,psuffix.c_str())); //same as h50x, keeping copy 
+      // Copy should be a clone.
+      hp[0]->hFlux[p][inu]->Clone(Form("h70%i%s",inu+1,psuffix.c_str()))->Write(); //same as h50x, keeping copy 
       //to be consistent with MB files
       for (int isec=0;isec<5;isec++) {
 	hp[0]->hsec[p][inu][isec]->Write();
@@ -241,35 +246,15 @@ int main(int ac, char* av[])
 
 void* FillHist(void* hpvoid)
 {
-  histpackage_t* hp=(histpackage_t*) hpvoid;
+  // No global registration of histograms
+  TH1::AddDirectory(false);
+  
+  // Lock thread before all initialisations.
   TThread::Lock();
-  TChain* dk2nuTree=new TChain("dk2nuTree");
-  TChain* dkmetaTree=NULL;
+  histpackage_t* hp=(histpackage_t*) hpvoid;
   const int nPRISM = (hp->prism_bins).size()-1;
-  if (hp->countPOT)
-    dkmetaTree=new TChain("dkmetaTree");
-  for (auto ifile : hp->filelist) {
-    dk2nuTree->Add(ifile.c_str());
-    if (dkmetaTree)
-      dkmetaTree->Add(ifile.c_str());
-  }
 
-  bsim::Dk2Nu*  dk2nu  = new bsim::Dk2Nu;
-  dk2nuTree->SetBranchAddress("dk2nu",&dk2nu);
-  bsim::DkMeta* dkmeta  = new bsim::DkMeta;
-  if (dkmetaTree)
-    dkmetaTree->SetBranchAddress("dkmeta",&dkmeta);
-
-  TThread::UnLock();
-
-  Long64_t ientry=0;
   hp->POT=0;
-  if (dkmetaTree) {
-    while (dkmetaTree->GetEntry(ientry++)) {
-      hp->POT+=dkmeta->pots;
-    }
-  }
-  hp->POT*=hp->NREDECAY;
 
   string nutype[]={    "nue",        "nuebar",      "numu",         "numubar"};
   string nultx[] ={"#nu_{e}", "#bar{#nu}_{e}", "#nu_{#mu}", "#bar{#nu}_{#mu}"};
@@ -287,8 +272,6 @@ void* FillHist(void* hpvoid)
   std::string suffix="";
   if (hp->rndSeed>0) 
     suffix=Form("_%i",hp->rndSeed);
-  std::cout << "About to lock thread " << hp->rndSeed << std::endl;
-  TThread::Lock();
   for (int p=0;p<=nPRISM;p++) {
     std::string psuffix = (p > 0) ? std::string(Form("_prism%02i", p)) : "";
     std::unique_ptr<TH3F> pxye = std::make_unique<TH3F>(Form("h_xyE%s%s",suffix.c_str(),psuffix.c_str()),
@@ -340,6 +323,9 @@ void* FillHist(void* hpvoid)
     hp->hsec.push_back(std::move(hpsec));
   } // for all PRISM bins, initialise
 
+  // Initialisations complete. We'll descend into thread-local calculations next.
+  TThread::UnLock();
+
   // Note this calculation assumes all z = detpos[2].
   // For more accurate PRISM fluxes you'll need a 3D profile.
   /*
@@ -349,77 +335,104 @@ void* FillHist(void* hpvoid)
    * this distribution (binned in 0.001 deg from 0 to 1.766) was then fit
    * using Mathematica. See DocDB [to be inserted]
    */
-  TThread::UnLock();
-  //ientry=0;
-  cout<<"Thread "<<hp->rndSeed<<" starting to process "<<dk2nuTree->GetNtrees()<<" files."<<endl;
-  //while (dk2nuTree->GetEntry(jentry++)) {
-  for(int jentry = 0; jentry < dk2nuTree->GetEntries(); jentry++){
+
+  //cout<<"Thread "<<hp->rndSeed<<" starting to process "<<dk2nuTree->GetNtrees()<<" files."<<endl;
+  int nEntries = 0;
+
+  for( const string & fname : hp->filelist ){
+    // initialise thread-local TFile, don't rely on TThread
+    // ALL initialisations should be thread-locked, *period*.
     TThread::Lock();
-    dk2nuTree->GetEntry(jentry);
+    std::unique_ptr<TFile> fin(TFile::Open(fname.c_str())); // unique_ptr gets deassigned when out of scope
+    TTree * dk2nuTree = dynamic_cast<TTree*>( fin->Get("dk2nuTree") );
+    bsim::Dk2Nu dk2nu; bsim::Dk2Nu * pdk2nu = &dk2nu;
+    TTree * dkmetaTree;
+    bsim::DkMeta dkmeta; bsim::DkMeta * pdkmeta = &dkmeta;
+    TVector3 xyz(0.0, 0.0, 0.0);
     TThread::UnLock();
-    //    if (jentry%100000==0) cout<<"Thread "<<hp->rndSeed<<" on entry "<<jentry<<endl;
-    for (int ipdg=0;ipdg<4;ipdg++) {
-      if (dk2nu->decay.ntype!=pdgcode[ipdg]) continue;
+
+    dk2nuTree->SetBranchAddress( "dk2nu", &pdk2nu );
+    int ientry = 0;
+
+    
+    // Descend into the event loop.
+    while(dk2nuTree->GetEntry(ientry++)) {
+      //    if (ientry%100000==0) cout<<"Thread "<<hp->rndSeed<<" on entry "<<ientry<<endl;
+      for (int ipdg=0;ipdg<4;ipdg++) {
+	if (dk2nu.decay.ntype!=pdgcode[ipdg]) continue;
       
-      for (int iredecay=0;iredecay<hp->NREDECAY;iredecay++) {
-	double enu,wgt_xy;
-	double xx=rndmno.Uniform(-hp->RDet,hp->RDet);
-	double yy=rndmno.Uniform(-hp->RDet,hp->RDet);
-	while (sqrt(xx*xx+yy*yy)>hp->RDet) {
-	  xx=rndmno.Uniform(-hp->RDet,hp->RDet);
-	  yy=rndmno.Uniform(-hp->RDet,hp->RDet);
-	}
-	TVector3 xyz(xx+hp->detpos[0],yy+hp->detpos[1],hp->detpos[2]);
-	bsim::calcEnuWgt(dk2nu,xyz,enu,wgt_xy);
-	//to compare with FluxForNuance output (MiniBooNE files)
-	//normalize through whole detector area in m2
-	double totwgh=wgt_xy*dk2nu->decay.nimpwt/3.14159*hp->RDet*hp->RDet*3.14159*1e-4;
-
-	int firstInelastic=0;
-	while (dk2nu->ancestor[firstInelastic].proc.find("HadronInelastic")==string::npos) firstInelastic++;
-
-	// Calculate the off axis angle in degrees, at z=detpos[2]
-	double ang = xyz.Theta() * TMath::RadToDeg();
-
-	for (int p=0;p<=nPRISM;p++){
-	  int pdx = -1;
-
-	  // thread safe...
-	  if( ang >= hp->prism_bins.front() && ang < hp->prism_bins.back() ) {
-	    auto it = std::upper_bound(hp->prism_bins.begin(), hp->prism_bins.end(), ang);
-	    pdx = std::distance(hp->prism_bins.begin(), it); // this bakes in the offset
+	for (int iredecay=0;iredecay<hp->NREDECAY;iredecay++) {
+	  double enu,wgt_xy;
+	  double xx=rndmno.Uniform(-hp->RDet,hp->RDet);
+	  double yy=rndmno.Uniform(-hp->RDet,hp->RDet);
+	  while (sqrt(xx*xx+yy*yy)>hp->RDet) {
+	    xx=rndmno.Uniform(-hp->RDet,hp->RDet);
+	    yy=rndmno.Uniform(-hp->RDet,hp->RDet);
 	  }
-	  //pdx += 1; // account for offset by 1
+	  // Do not even create this on the stack.
+	  xyz.SetXYZ(xx+hp->detpos[0],yy+hp->detpos[1],hp->detpos[2]);
+	  bsim::calcEnuWgt(dk2nu.decay,xyz,enu,wgt_xy);
+	  //to compare with FluxForNuance output (MiniBooNE files)
+	  //normalize through whole detector area in m2
+	  double totwgh=wgt_xy*dk2nu.decay.nimpwt/3.14159*hp->RDet*hp->RDet*3.14159*1e-4;
+
+	  int firstInelastic=0;
+	  while (dk2nu.ancestor[firstInelastic].proc.find("HadronInelastic")==string::npos) firstInelastic++;
+
+	  // Calculate the off axis angle in degrees, at z=detpos[2]
+	  double ang = xyz.Theta() * TMath::RadToDeg();
+
+	  for (int p=0;p<=nPRISM;p++){
+	    int pdx = -1;
+
+	    // thread safe...
+	    if( ang >= hp->prism_bins.front() && ang < hp->prism_bins.back() ) {
+	      auto it = std::upper_bound(hp->prism_bins.begin(), hp->prism_bins.end(), ang);
+	      pdx = std::distance(hp->prism_bins.begin(), it); // this bakes in the offset
+	    }
+	    //pdx += 1; // account for offset by 1
 	  
-	  if( p > 0 && p != pdx ) { continue; }
-	  hp->hxye[p]->Fill(xx,yy,enu,totwgh);
-	  hp->hFlux[p][ipdg]->Fill(enu,totwgh);
+	    if( p > 0 && p != pdx ) { continue; }
+	    hp->hxye[p]->Fill(xx,yy,enu,totwgh);
+	    hp->hFlux[p][ipdg]->Fill(enu,totwgh);
 	
-	  if (dk2nu->decay.ptype==13 || dk2nu->decay.ptype==-13) //mu+-
-	    hp->hparent[p][ipdg][0]->Fill(enu,totwgh);
-	  else if (dk2nu->decay.ptype==211 || dk2nu->decay.ptype==-211) //pi+-
-	    hp->hparent[p][ipdg][1]->Fill(enu,totwgh);
-	  else if (dk2nu->decay.ptype==130) //K0L
-	    hp->hparent[p][ipdg][2]->Fill(enu,totwgh);
-	  else if (dk2nu->decay.ptype==321 || dk2nu->decay.ptype==-321) //K+-
-	    hp->hparent[p][ipdg][3]->Fill(enu,totwgh);
+	    if (dk2nu.decay.ptype==13 || dk2nu.decay.ptype==-13) //mu+-
+	      hp->hparent[p][ipdg][0]->Fill(enu,totwgh);
+	    else if (dk2nu.decay.ptype==211 || dk2nu.decay.ptype==-211) //pi+-
+	      hp->hparent[p][ipdg][1]->Fill(enu,totwgh);
+	    else if (dk2nu.decay.ptype==130) //K0L
+	      hp->hparent[p][ipdg][2]->Fill(enu,totwgh);
+	    else if (dk2nu.decay.ptype==321 || dk2nu.decay.ptype==-321) //K+-
+	      hp->hparent[p][ipdg][3]->Fill(enu,totwgh);
 	
-	  if (fabs(dk2nu->ancestor[firstInelastic].pdg)==211 && fabs(dk2nu->decay.ptype)==13)
-	    hp->hsec[p][ipdg][0]->Fill(enu,totwgh);
-	  else if (fabs(dk2nu->ancestor[firstInelastic].pdg)==211)
-	    hp->hsec[p][ipdg][1]->Fill(enu,totwgh);
-	  else if (fabs(dk2nu->ancestor[firstInelastic].pdg)==130)
-	    hp->hsec[p][ipdg][2]->Fill(enu,totwgh);
-	  else if (fabs(dk2nu->ancestor[firstInelastic].pdg)==321)
-	    hp->hsec[p][ipdg][3]->Fill(enu,totwgh);
-	  else if (dk2nu->ancestor[firstInelastic].pdg==2212 || dk2nu->ancestor[firstInelastic].pdg==2112)
-	    hp->hsec[p][ipdg][4]->Fill(enu,totwgh);
-	} // loop over PRISM bins
-      } // loop over redecays
-    } // loop over nu pdg
-  } // loop over dk2nu entries
- 
-  cout<<"Thread "<<hp->rndSeed<<" processed "<<dk2nuTree->GetEntries()<<" entries. POT = "<<hp->POT<<endl;
+	    if (fabs(dk2nu.ancestor[firstInelastic].pdg)==211 && fabs(dk2nu.decay.ptype)==13)
+	      hp->hsec[p][ipdg][0]->Fill(enu,totwgh);
+	    else if (fabs(dk2nu.ancestor[firstInelastic].pdg)==211)
+	      hp->hsec[p][ipdg][1]->Fill(enu,totwgh);
+	    else if (fabs(dk2nu.ancestor[firstInelastic].pdg)==130)
+	      hp->hsec[p][ipdg][2]->Fill(enu,totwgh);
+	    else if (fabs(dk2nu.ancestor[firstInelastic].pdg)==321)
+	      hp->hsec[p][ipdg][3]->Fill(enu,totwgh);
+	    else if (dk2nu.ancestor[firstInelastic].pdg==2212 || dk2nu.ancestor[firstInelastic].pdg==2112)
+	      hp->hsec[p][ipdg][4]->Fill(enu,totwgh);
+	  } // loop over PRISM bins
+	} // loop over redecays
+      } // loop over nu pdg
+    } // loop over dk2nu entries
+    nEntries += ientry;
+    
+    // update POT
+    if(hp->countPOT && fin->GetListOfKeys()->FindObject("dkmetaTree")) {
+      dkmetaTree = dynamic_cast<TTree*>( fin->Get("dkmetaTree") );
+      dkmetaTree->SetBranchAddress("dkmeta", &pdkmeta);
+      int imeta = 0;
+      while(dkmetaTree->GetEntry(imeta++)){ hp->POT += dkmeta.pots; }
+    } // update POT
+    
+  } // loop over file list
+  hp->POT*=hp->NREDECAY; // one update after filelist end
+     
+  cout<<"Thread "<<hp->rndSeed<<" processed "<<nEntries<<" entries. POT = "<<hp->POT<<endl;
 
   return NULL;
 }
