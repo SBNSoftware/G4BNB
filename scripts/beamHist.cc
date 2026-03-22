@@ -96,7 +96,8 @@ int main(int ac, char* av[])
     cerr << opt <<endl;
     return 1;
   }
-  if (nthread>8){ nthread=8; }
+  const int NMAX=20;
+  if (nthread>NMAX){ nthread=NMAX; }
 
   glob_t glob_result;
   cout<<"Searching "<<searchpath<<endl;
@@ -154,14 +155,12 @@ int main(int ac, char* av[])
       hp[i]->countPOT=true;
     else 
       hp[i]->countPOT=false;
-    std::cout << "Making thread " << i << std::endl;
     t[i]=new TThread(Form("Thread_%i",i),FillHist, (void*) hp[i]);
     t[i]->Run();
   }
   TThread::Ps();
   for (int i=0;i<nthread;i++) {
     t[i]->Join();
-    std::cout << "Ending thread " << i << std::endl;
   }
 
   //add histograms from all threads, for all PRISM bins
@@ -323,6 +322,8 @@ void* FillHist(void* hpvoid)
     hp->hsec.push_back(std::move(hpsec));
   } // for all PRISM bins, initialise
 
+  //cout<<"Thread "<<hp->rndSeed<<" starting to process "<<dk2nuTree->GetNtrees()<<" files."<<endl;
+  int nEntries = 0;
   // Initialisations complete. We'll descend into thread-local calculations next.
   TThread::UnLock();
 
@@ -335,9 +336,6 @@ void* FillHist(void* hpvoid)
    * this distribution (binned in 0.001 deg from 0 to 1.766) was then fit
    * using Mathematica. See DocDB [to be inserted]
    */
-
-  //cout<<"Thread "<<hp->rndSeed<<" starting to process "<<dk2nuTree->GetNtrees()<<" files."<<endl;
-  int nEntries = 0;
 
   for( const string & fname : hp->filelist ){
     // initialise thread-local TFile, don't rely on TThread
@@ -352,10 +350,9 @@ void* FillHist(void* hpvoid)
     TThread::UnLock();
 
     dk2nuTree->SetBranchAddress( "dk2nu", &pdk2nu );
-    int ientry = 0;
-
     
     // Descend into the event loop.
+    int ientry = 0;
     while(dk2nuTree->GetEntry(ientry++)) {
       //    if (ientry%100000==0) cout<<"Thread "<<hp->rndSeed<<" on entry "<<ientry<<endl;
       for (int ipdg=0;ipdg<4;ipdg++) {
