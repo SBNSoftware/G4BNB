@@ -203,6 +203,7 @@ int main(int ac, char* av[])
   // Each collection of histograms gets its own TDirectoryFile.
   TFile fout(outputfn.c_str(),"RECREATE");
   for (int p=0;p<=nPRISM;p++) {
+    std::string psuffix = (p > 0) ? std::string(Form("_prism%02i", p)) : "";
     std::string dirname, dirtitle;
     if( p == 0 ) {
       dirname  = std::string("inclusive");
@@ -223,7 +224,7 @@ int main(int ac, char* av[])
       }
     }  
     for (int inu=0;inu<4;inu++) {
-      hp[0]->hFlux[p][inu]->Write(Form("h70%i",inu+1)); //same as h50x, keeping copy 
+      hp[0]->hFlux[p][inu]->Write(Form("h70%i%s",inu+1,psuffix.c_str())); //same as h50x, keeping copy 
       //to be consistent with MB files
       for (int isec=0;isec<5;isec++) {
 	hp[0]->hsec[p][inu][isec]->Write();
@@ -356,7 +357,16 @@ void* FillHist(void* hpvoid)
 	int firstInelastic=0;
 	while (dk2nu->ancestor[firstInelastic].proc.find("HadronInelastic")==string::npos) firstInelastic++;
 
+	// Calculate the off axis angle in degrees, at z=detpos[2]
+	double ang = xyz.Theta() * TMath::RadToDeg();
+
 	for (int p=0;p<=nPRISM;p++){
+	  int pdx = 0;
+
+	  while( hp->prism_bins[pdx+1] < ang && pdx < nPRISM+1 ) { pdx++; }
+	  pdx += 1; // account for offset by 1
+	  
+	  if( p > 0 && p != pdx ) { continue; }
 	  hp->hxye[p]->Fill(xx,yy,enu,totwgh);
 	  hp->hFlux[p][ipdg]->Fill(enu,totwgh);
 	
