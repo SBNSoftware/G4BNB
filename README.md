@@ -69,7 +69,7 @@ make install
 
 ## Submit grid jobs
 
-If submitting jobs from the SL7 container, ensure the container has jobsub_lite support. If the container does not, it is possible to submit directly from the AL9 nodes without sourcing the setup scripts once the repository has been built. 
+Please note that it is no longer possible to submit jobs to the grid from an SL7 container! It is possible to submit directly from the AL9 nodes without sourcing the setup scripts once the repository has been built as described above. 
 The `submitBeam.py` script sets up a singularity image of SL7 on the grid.
 To submit grid jobs use submitBeam.py script:
 
