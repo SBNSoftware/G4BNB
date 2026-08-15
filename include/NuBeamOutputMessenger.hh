@@ -27,6 +27,7 @@ class NuBeamOutputMessenger: public G4UImessenger
   G4UIcmdWithABool*          fSaveProductionNtuple;
   G4UIcommand*               fBoundaryNtuple;
   G4UIcmdWithADoubleAndUnit* fNuEnergyThrCmd;
+  G4UIcmdWithADoubleAndUnit* fNuEnergyUpperThrCmd;
   G4UIcmdWithADoubleAndUnit* fPionMomentumThrCmd;
   G4UIcmdWithADoubleAndUnit* fMuonMomentumThrCmd;
   G4UIcmdWithADoubleAndUnit* fKaonMomentumThrCmd;

@@ -1,3 +1,6 @@
 G4History.macro
 *.dk2nu.root
 *~
+build/**
+lib/**
+lib64

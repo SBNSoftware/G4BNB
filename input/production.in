@@ -230,6 +230,7 @@
 # set thresholds for recording neutrinos
 #
 /boone/output/nuEnergyThr 0. MeV
+/boone/output/nuEnergyUpperThr -1. MeV
 /boone/output/pionMomentumThr 1. MeV
 /boone/output/muonMomentumThr 1. MeV
 /boone/output/kaonMomentumThr -1. MeV

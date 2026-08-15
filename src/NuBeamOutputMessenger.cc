@@ -46,6 +46,13 @@ NuBeamOutputMessenger::NuBeamOutputMessenger(NuBeamOutput* O)
   fNuEnergyThrCmd->SetParameterName("nuEnergyThr", true, false);
   fNuEnergyThrCmd->SetDefaultUnit("MeV");
   fNuEnergyThrCmd->SetDefaultValue(0.);
+
+  fNuEnergyUpperThrCmd = new G4UIcmdWithADoubleAndUnit("/boone/output/nuEnergyUpperThr",this);
+  fNuEnergyUpperThrCmd->SetGuidance("Upper energy threshold for neutrinos in neutrino ntuple");
+  fNuEnergyUpperThrCmd->SetGuidance("Available options: any positive floating-point number, with a valid unit (e.g. MeV, GeV, etc.)");
+  fNuEnergyUpperThrCmd->SetParameterName("nuEnergyUpperThr", true, false);
+  fNuEnergyUpperThrCmd->SetDefaultUnit("MeV");
+  fNuEnergyUpperThrCmd->SetDefaultValue(0.);
   
   fPionMomentumThrCmd = new G4UIcmdWithADoubleAndUnit("/boone/output/pionMomentumThr",this);
   fPionMomentumThrCmd->SetGuidance("Momentum threshold for parent pions in neutrino ntuple");
@@ -100,6 +107,9 @@ void NuBeamOutputMessenger::SetNewValue(G4UIcommand * command,G4String newValue)
 
   if(command == fNuEnergyThrCmd)
     fOutput->SetNuEnergyThr(fNuEnergyThrCmd->GetNewDoubleValue(newValue));
+
+  if(command == fNuEnergyUpperThrCmd)
+    fOutput->SetNuEnergyUpperThr(fNuEnergyUpperThrCmd->GetNewDoubleValue(newValue));
 
   if(command == fPionMomentumThrCmd)
     fOutput->SetPionMomentumThr(fPionMomentumThrCmd->GetNewDoubleValue(newValue));

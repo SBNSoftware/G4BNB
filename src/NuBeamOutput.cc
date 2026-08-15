@@ -59,6 +59,7 @@ NuBeamOutput::NuBeamOutput() :
   UI->ApplyCommand("/boone/output/saveProductionNtuple");
   UI->ApplyCommand("/boone/output/saveAfterHornNtuple");
   UI->ApplyCommand("/boone/output/nuEnergyThr");
+  UI->ApplyCommand("/boone/output/nuEnergyUpperThr");
   UI->ApplyCommand("/boone/output/pionMomentumThr");
   UI->ApplyCommand("/boone/output/muonMomentumThr");
   UI->ApplyCommand("/boone/output/kaonMomentumThr");
@@ -288,6 +289,7 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
 
   //check thresholds
   if (NuMomentum.mag()<fNuEnergyThr) return;
+  if (fNuEnergyUpperThr > 0. && NuMomentum.mag() > fNuEnergyUpperThr) return;
   if ((NuParentTrack->GetParticleDefinition()==G4PionPlus::PionPlus() ||
        NuParentTrack->GetParticleDefinition()==G4PionMinus::PionMinus()) &&
       ParentMomentumFinal.mag()<fPionMomentumThr) return;
@@ -367,6 +369,17 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
   //add neutrino track info to ancestor since it is not in trajectory container yet
   G4String creatorProc=track->GetCreatorProcess()->GetProcessName()+":"+
     ((NuBeamTrackInformation*)track->GetUserInformation())->GetCreatorModelName();
+  G4int cmid = -1;
+  if(track->GetCreatorProcess()->GetProcessName() == "muMinusCaptureAtRest") {
+    cmid = track->GetCreatorModelID();
+    G4String extra;
+    if(cmid == G4PhysicsModelCatalog::GetIndex("muMinusCaptureAtRest_NuclearCapture")) {extra = "NuclearCapture";}
+    else { 
+      if(cmid == G4PhysicsModelCatalog::GetIndex("muMinusCaptureAtRest_DIO")) {extra = "DecayInOrbit";}
+      else {extra = "Other";} 
+    }
+    creatorProc=track->GetCreatorProcess()->GetProcessName()+":"+extra;
+  }
   NuBeamTrajectory* nutraj=new NuBeamTrajectory(track);
   nutraj->AddTrajectoryPoint(track,creatorProc,G4ThreeVector(-9999,-9999,-9999));
   nutraj->AddTrajectoryPoint(track,creatorProc,G4ThreeVector(-9999,-9999,-9999));
@@ -410,8 +423,7 @@ void NuBeamOutput::RecordNeutrino(const G4Track* track)
     if( impwt == 1.0 && t->GetWeight() != 1.0 ) impwt = t->GetWeight();
     if( t->GetWeight() == 1.0 && impwt != 1.0 ) t->SetWeight( impwt );
   }
-  //fDk2Nu->decay.nimpwt = track->GetWeight(); // pre-fix
-  fDk2Nu->decay.nimpwt = impwt; // post-fix
+  fDk2Nu->decay.nimpwt = impwt;
   
   if (fDk2Nu->ancestor.size() == 1) { 
     std::cerr << " Incorrect ancestry...  Final number of ancestor at evt " << fDk2Nu->potnum 
@@ -656,6 +668,7 @@ G4int NuBeamOutput::GetDecayCode(const G4Track* nuTrack)
 
   G4ProcessType creator_ptype = (nuTrack->GetCreatorProcess())->GetProcessType();
   G4String creator_name = (nuTrack->GetCreatorProcess())->GetProcessName();
+  
 
   switch (parentTraj->GetPDGEncoding()) {
   case 130:
@@ -706,9 +719,24 @@ G4int NuBeamOutput::GetDecayCode(const G4Track* nuTrack)
     }
     break;
   // For muons, check if the creator process was decay or capture
+  // Awkwardly, G4 first captures the muon to a muonium atom (K shell), then decides if muon decays or is captured by a proton in the nucleus... Both are tagged "muMinusCaptureAtRest"
+  // And the polarisation correction should apply to muon decays in the atom.
+  // In that case, check to see if the creator had one or two neutrino daughters. One is capture, two is decay
   case 13:
     if( creator_ptype == fDecay ) { return bsim::dkp_mum_nusep; }
-    else if( creator_name.find("Capture") != std::string::npos ) { return bsim::dk_mum_capture; }
+    else if( creator_name == "muMinusCaptureAtRest" ) { 
+      G4int code;
+      G4int cmid = nuTrack->GetCreatorModelID();
+      if(cmid == G4PhysicsModelCatalog::GetIndex("muMinusCaptureAtRest_NuclearCapture")) 
+	{code = bsim::dk_mum_capture;}
+      else { 
+	if(cmid == G4PhysicsModelCatalog::GetIndex("muMinusCaptureAtRest_DIO")) 
+	  {code = bsim::dkp_other;} // no polarisation correction at the dk2nu stage because it's in G4
+	else 
+	  {code = bsim::dkp_unknown;} 
+      }
+      return code;
+    }
     else { return bsim::dkp_unknown; }
     break;
   case -13: 

@@ -2,6 +2,8 @@
 #define NuBeamGeometryConstruction_h 1
 
 #include <stdlib.h>
+#include <cstdlib>
+#include <cstdio>
 
 #include "G4VUserDetectorConstruction.hh"
 #include "G4PVPlacement.hh"
@@ -21,7 +23,10 @@ public:
   ~NuBeamGeometryConstruction();
   G4VPhysicalVolume* Construct();
 
-  void SetGeometryFile (G4String val) { fGeometryFile = val;};
+  void SetGeometryFile (G4String val) { 
+    if( std::getenv("G4BNB_DIR") == 0 ) fGeometryFile = val;
+    else fGeometryFile = G4String(G4String(std::getenv("G4BNB_DIR")) + G4String("/") + G4String(val.c_str()));
+  };
   G4String GetGeometryFile() {return fGeometryFile;};
   void SetHornCurrent(G4double);
 

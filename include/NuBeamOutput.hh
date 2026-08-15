@@ -10,6 +10,7 @@
 #include "G4HadFinalState.hh"
 #include "G4LogicalVolume.hh"
 #include "G4LogicalVolumeStore.hh"
+#include "G4PhysicsModelCatalog.hh"
 
 #include "NuBeamTrajectory.hh"
 #include "NuBeamLocalField.hh"
@@ -84,6 +85,8 @@ public:
 
   void SetNuEnergyThr(G4double val){ fNuEnergyThr = val;};
   G4double GetNuEnergyThr() const { return fNuEnergyThr;};
+  void SetNuEnergyUpperThr(G4double val){ fNuEnergyUpperThr = val;};
+  G4double GetNuEnergyUpperThr() const { return fNuEnergyUpperThr;};
   void SetPionMomentumThr(G4double val){ fPionMomentumThr = val;};
   G4double GetPionMomentumThr() const { return fPionMomentumThr;};
   void SetMuonMomentumThr(G4double val){ fMuonMomentumThr = val;};
@@ -134,6 +137,7 @@ private:
   TTree* fProductionTree;
 
   G4double fNuEnergyThr;
+  G4double fNuEnergyUpperThr;
   G4double fPionMomentumThr;
   G4double fMuonMomentumThr;
   G4double fKaonMomentumThr;

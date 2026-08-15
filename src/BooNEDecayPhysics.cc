@@ -117,9 +117,8 @@ void BooNEDecayPhysics::CorrectDecayTables()
   G4double kp_pip_pi0_pi0 = 0;       // set value below
   G4double kp_pi0_ep_nue = 0.0507;   // 0.0507(4)
   G4double kp_pi0_mup_numu = 0.03352; // 0.03352(33)
-    // put the remainder in K+ -> pi+ pi0 pi0 to make the sum of all modes unity
-  G4double brsum = kp_mup_numu + kp_pip_pi0 + kp_pip_pip_pim
-    + kp_pi0_ep_nue + kp_pi0_mup_numu;
+  // put the remainder in K+ -> pi+ pi0 pi0 to make the sum of all modes unity
+  G4double brsum = kp_mup_numu + kp_pip_pi0 + kp_pip_pip_pim + kp_pi0_ep_nue + kp_pi0_mup_numu;
   if (brsum < 1.) {
     kp_pip_pi0_pi0 = 1. - brsum; // actual value = 0.01757(24)
   } else {

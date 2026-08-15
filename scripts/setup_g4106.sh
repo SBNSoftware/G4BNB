@@ -11,3 +11,6 @@ setup ifdhc
 setup boost v1_82_0 -q e26:prof
 #For debug
 setup gdb v10_1
+
+# Set the G4BNB_DIR env variable
+export G4BNB_DIR=$(dirname $( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ))

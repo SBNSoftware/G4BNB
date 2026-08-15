@@ -10,3 +10,5 @@ setup ifdhc
 #use boost for beamHist.c
 setup boost v1_57_0a -q e9:prof
 
+# Set the G4BNB_DIR env variable
+export G4BNB_DIR=$(dirname $( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd ))
